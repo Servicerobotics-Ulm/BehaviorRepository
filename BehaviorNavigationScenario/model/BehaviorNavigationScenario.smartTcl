@@ -1,0 +1,172 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCENARIO MEMORY
+ 
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name home)
+            (speech "home position")
+            (approach-type (region))
+            (approach-region-pose (0 0 0))
+            (approach-region-dist 75)
+            (approach-exact-pose (0 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1000 0))
+            (orientation-exact (position 1000 0))
+            (backward-dist 500)))
+
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name 1)
+            (speech "ONE")
+            (approach-type (exact))
+            (approach-region-pose (800 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1000 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 0 0))
+            (orientation-exact (position 0 0))
+            (backward-dist 500)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name 2)
+            (speech "TWO")
+            (approach-region-pose (800 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1000 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 0 0))
+            (orientation-exact (position 0 0))
+            (backward-dist 500)))
+
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name room-1)
+            (speech "zafh lab")
+            (size (50000 50000))
+            (offset (-25000 -25000))))
+
+
+
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
+
+
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :key '(is-a) :value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+
+
+;; SCENARIO MEMORY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; testTask
+
+; (execute '(navigationTestTask))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; REACTIVE NAV
+; (execute '(nav1.tcb-reactive-navigation))
+; (execute '(nav1.tcb-stop-reactive-navigation))
+
+;; JOYSTICK
+; (execute '(nav1.tcb-joystick-navigation))
+; (execute '(nav1.tcb-stop-joystick-navigation))
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(realize-tcb (navigationTestTask)
+  (action (	
+            (format t "===== navigationTestTask~%")))
+  (plan (
+
+          (nav1.tcb-init-navigation)
+          (nav1.tcb-load-navigation-map "navigation-map")
+
+          (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+          (localizationModInst.tcb-trigger-global-localization)
+          (localizationModInst.tcb-set-robot-pose 0 0 0)
+
+          (localizationModInst.tcb-activate-localization)
+          (nav1.tcb-move-robot 'approach-region 1)
+          (nav1.tcb-move-robot 'approach-exact 1)
+          (nav1.tcb-move-robot 'backward 1)
+          (nav1.tcb-move-robot 'backward-abs 100)
+          (nav1.tcb-move-robot 'plain 1000 0 100)
+          (nav1.tcb-move-robot 'orientate-region 1)
+          (nav1.tcb-move-robot 'orientate-exact 1)
+          (nav1.tcb-move-robot 'approach-region home)
+          (nav1.tcb-move-robot 'orientate-exact home)
+          (nav1.tcb-move-robot 'orientate-angle-absolute 45)
+          (nav1.tcb-move-robot 'orientate-angle-relative 135)
+          (nav1.tcb-move-robot 'orientate-angle-relative 180)
+          (nav1.tcb-approach-location 1) ;region
+          (localizationModInst.tcb-deactivate-localization)
+
+          (base.getBasePose => ?x ?y ?yaw)
+          (base.getBaseCharging => ?charging)
+          (echoTask ?x ?y ?yaw ?charging))))
+
+
+
+(realize-tcb (echoTask ?x ?y ?yaw ?charging)
+  (action (	
+            (format t "===== echoTask: ~a ~a ~a ~a ~%" ?x ?y ?yaw ?charging))))
+
+;; testTask
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
