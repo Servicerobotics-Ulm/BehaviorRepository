@@ -1,0 +1,144 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCENARIO MEMORY
+ 
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :key '(is-a) :value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+
+
+;; SCENARIO MEMORY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CompareTask
+
+; (execute '(startCompareTask))
+; (execute '(stopCompareTask "/tmp/SLAMCompare1/"))
+
+
+(realize-tcb (startCompareTask)
+  (action (	
+            (format t "===== startCompareTask~%")))
+  (plan (
+
+          ;;set base to zero
+          (base.resetBase)
+
+          ;;activate realsense and laser generation
+          (rgbdRS.activateCameraPush)
+          (laserFromRGBDGen.activateLaserGenaration)
+
+          ;;start mapping
+          (SLAMLaser.tcb-start-mapping 0 0 0)
+          (SLAMRGBD.tcb-start-mapping 0 0 0))))
+
+
+(realize-tcb (stopCompareTask ?mapDir)
+  (action (	
+            (format t "===== startCompareTask~%")))
+  (plan (
+          ;;stop mapping save maps
+          (SLAMLaser.tcb-stop-mapping "laserMap" ?mapDir)
+          (SLAMRGBD.tcb-stop-mapping "rgbdMap" ?mapDir)
+
+          ;;stop realsense and laser generation
+          (rgbdRS.deactivateCamera)
+          (laserFromRGBDGen.dectivateLaserGenaration))))
+
+
+(realize-tcb (abortCompareTask)
+  (action (	
+            (format t "===== abortCompareTask~%")))
+  (plan (
+          ;;stop mapping save maps
+          (SLAMLaser.tcb-abort-mapping)
+          (SLAMRGBD.tcb-abort-mapping)
+
+          ;;stop realsense and laser generation
+          (rgbdRS.deactivateCamera)
+          (laserFromRGBDGen.dectivateLaserGenaration))))
+
+
+;; CompareTask
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(format t "INIT DONE ~%")
+
+;; MENU
+(defvar nmbr nil)
+
+(defun menu()
+ (loop
+  (format t "MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 1 - Start Mapping ~%")
+  (format t " 2 - Stop Mapping - Save Maps ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 3 - Abort Mapping ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t "99 - quit menu ~%")
+  (format t " 0 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  (format t "your choice: ~d ~%" nmbr)
+  
+  (cond
+    ((equal nmbr 1)
+      (execute '(startCompareTask)))
+    ((equal nmbr 2)
+     (let ((mappath nil))
+       (format t "Enter dir name and path where to save the map: ~%")
+       (format t "- empty string generates directory with timestamp: /tmp/compare-map-2019-xxx ~%")
+       (format t "- or enter a path e.g.: /tmp/compareMaps/ ~%")
+       (setf mappath (read-line nil))
+       (format t "your path: ~s ~%" mappath)
+       (cond
+         ((equal "" mappath)
+           (multiple-value-bind (second minute hour date month year)
+             ;;get timestamp
+             (get-decoded-time)
+             ;;create dir
+             (setf mappath (format NIL "/tmp/compare-map-~d-~d-~2,'0d_~2,'0d-~2,'0d-~2,'0d/" year month date hour minute second))
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)))
+         (T
+           (if (char/= #\/ (char mappath (- (length mappath) 1)))
+             (setf mappath (format nil "~a/" mappath)))
+
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)
+          ))
+       (execute `(stopCompareTask ,mappath))))
+    ((equal nmbr 3)
+     (execute '(abortCompareTask)))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit)))))
+
+;  (menu)

@@ -1,0 +1,13 @@
+TaskRealizationModel BehaviorSLAMRGBdLaserCompare {
+	AbstractCoordinationModuleInstance SLAMLaser coordModuleDef CommLocalizationObjects.SlamModule
+	AbstractCoordinationModuleInstance SLAMRGBD coordModuleDef CommLocalizationObjects.SlamModule
+	
+	AbstractCoordinationModuleInstance rgbdRS coordModuleDef DomainVision.CameraModule
+	AbstractCoordinationModuleInstance laserFromRGBDGen coordModuleDef CommBasicObjects.LaserGenarationModule
+	
+	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
+	AbstractCoordinationModuleInstance kb coordModuleDef CommBasicObjects.KBModule
+	
+   	//this task realization is a dummy (see smartTCL file)
+	//TaskRealization CommNavigationObjects.testTask { }
+}
