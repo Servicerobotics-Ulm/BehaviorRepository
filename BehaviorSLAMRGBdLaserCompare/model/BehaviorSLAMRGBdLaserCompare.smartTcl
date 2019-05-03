@@ -38,6 +38,7 @@
 ; (execute '(stopCompareTask "/tmp/SLAMCompare1/"))
 
 
+
 (realize-tcb (startCompareTask)
   (action (	
             (format t "===== startCompareTask~%")))
@@ -49,6 +50,9 @@
           ;;activate realsense and laser generation
           (rgbdRS.activateCameraPush)
           (laserFromRGBDGen.activateLaserGenaration)
+
+          (visLaser.startVisualizationOf 'map1 "ComponentGMapping" "newestMapPushServer")
+          (visRS.startVisualizationOf 'map1 "ComponentGMapping_rs" "newestMapPushServer")
 
           ;;start mapping
           (SLAMLaser.tcb-start-mapping 0 0 0)
@@ -63,6 +67,9 @@
           (SLAMLaser.tcb-stop-mapping "laserMap" ?mapDir)
           (SLAMRGBD.tcb-stop-mapping "rgbdMap" ?mapDir)
 
+          (visLaser.stopVisualizationOf 'map1)
+          (visRS.stopVisualizationOf 'map1)
+
           ;;stop realsense and laser generation
           (rgbdRS.deactivateCamera)
           (laserFromRGBDGen.dectivateLaserGenaration))))
@@ -75,6 +82,36 @@
           ;;stop mapping save maps
           (SLAMLaser.tcb-abort-mapping)
           (SLAMRGBD.tcb-abort-mapping)
+
+          (visLaser.stopVisualizationOf 'map1)
+          (visRS.stopVisualizationOf 'map1)
+
+          ;;stop realsense and laser generation
+          (rgbdRS.deactivateCamera)
+          (laserFromRGBDGen.dectivateLaserGenaration))))
+
+
+(realize-tcb (showSensorData)
+  (action (	
+            (format t "===== showSensor~%")))
+  (plan (
+          ;;activate realsense and laser generation
+          (rgbdRS.activateCameraPush)
+          (laserFromRGBDGen.activateLaserGenaration)
+
+          ;;activate the visualization
+          (visLaser.startVisualizationOf 'laser1 "ComponentRobotinoLaserServer" "pushNewestServer")
+          (visRS.startVisualizationOf 'laser1 "ComponentLaserFromRGBDServer" "laserPushNewestServer"))))
+
+
+(realize-tcb (stopSensorData)
+  (action (	
+            (format t "===== stopSensorData~%")))
+  (plan (
+
+          ;;stop the visualization
+          (visLaser.stopVisualizationOf 'laser1)
+          (visRS.stopVisualizationOf 'laser1)
 
           ;;stop realsense and laser generation
           (rgbdRS.deactivateCamera)
@@ -98,6 +135,10 @@
   (format t " ---------------------------------------------------- ~%")
   (format t " 3 - Abort Mapping ~%")
   (format t " ---------------------------------------------------- ~%")
+  (format t " 4 - Show Sensor Data ~%")
+  (format t " 5 - Stop Show Sensor Data ~%")
+  (format t " ---------------------------------------------------- ~%")
+
   (format t "99 - quit menu ~%")
   (format t " 0 - exit ~%")
   (setf nmbr (parse-integer (read-line nil)))
@@ -134,6 +175,10 @@
        (execute `(stopCompareTask ,mappath))))
     ((equal nmbr 3)
      (execute '(abortCompareTask)))
+    ((equal nmbr 4)
+     (execute '(showSensorData)))
+    ((equal nmbr 5)
+     (execute '(stopSensorData)))
     ((equal nmbr 99)
       (format t "type (menu) to come back to menu ~%")
       (return))

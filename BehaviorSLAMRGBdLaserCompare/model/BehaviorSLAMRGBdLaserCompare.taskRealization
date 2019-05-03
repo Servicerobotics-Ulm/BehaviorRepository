@@ -8,6 +8,9 @@ TaskRealizationModel BehaviorSLAMRGBdLaserCompare {
 	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
 	AbstractCoordinationModuleInstance kb coordModuleDef CommBasicObjects.KBModule
 	
+	AbstractCoordinationModuleInstance visLaser coordModuleDef CommBasicObjects.VisualizationModule
+	AbstractCoordinationModuleInstance visRS coordModuleDef CommBasicObjects.VisualizationModule
+	
    	//this task realization is a dummy (see smartTCL file)
 	//TaskRealization CommNavigationObjects.testTask { }
 }
