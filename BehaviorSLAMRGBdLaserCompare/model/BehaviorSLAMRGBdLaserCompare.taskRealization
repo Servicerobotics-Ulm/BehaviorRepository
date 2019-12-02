@@ -13,4 +13,6 @@ TaskRealizationModel BehaviorSLAMRGBdLaserCompare {
 	
    	//this task realization is a dummy (see smartTCL file)
 	//TaskRealization CommNavigationObjects.testTask { }
+	//(visLaser.startVisualizationOf 'laser1 "ComponentRobotinoLaserServer" "pushNewestServer")
+	
 }
