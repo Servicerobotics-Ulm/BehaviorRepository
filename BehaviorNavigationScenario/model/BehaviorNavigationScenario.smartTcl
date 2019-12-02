@@ -173,7 +173,17 @@
 ; (execute '(nav1.tcb-joystick-navigation))
 ; (execute '(nav1.tcb-stop-joystick-navigation))
 ;;
+; (execute '(localizationModInst.tcb-activate-localization))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
+;; (execute '(cameraInst.activateCameraPush))
+;; (execute '(cameraInst.activateCameraQuery))
+;; (execute '(cameraInst.deactivateCamera))
+
+;; (execute '(laserfromrgbdInst.activateLaserGenaration))
+;; (execute '(laserfromrgbdInst.dectivateLaserGenaration))
+
 
 
 (realize-tcb (navigationTestTask)
