@@ -1,0 +1,105 @@
+(format t "INIT DONE ~%")
+
+(defun format-locations (s obj colonmod at-sign) (declare (ignore colonmod)) (declare (ignore at-sign)) (format s "~s" (get-value obj 'name)))
+
+;; MENU
+(defvar nmbr nil)
+
+(defun menu()
+  (execute '(nav1.tcb-init-navigation))
+  (execute '(nav1.tcb-load-navigation-map "navigation-map"))
+
+  (execute '(localizationModInst.tcb-load-localization-map "localization-map.yaml"))
+  (execute '(localizationModInst.tcb-trigger-global-localization))
+  (execute '(localizationModInst.tcb-set-robot-pose 0 0 0))
+(loop
+
+  (let ((known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+
+  (format t "~%MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 3 - Start Joystick Navigation ~%")
+  (format t " 4 - Stop Joystick Navigation ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 5 - Approach location ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 6 - Start Mapping ~%")
+  (format t " 7 - Stop Mapping - Save Maps ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 8 - Abort Mapping ~%")
+  (format t " ---------------------------------------------------- ~%")
+  ;(format t " 95 - Add new locations ~%")
+  (format t " 96 - Show locations ~%")
+  ;(format t " 97 - Save locations to file ~%")
+  ;(format t " 98 - Load locations from file ~%")
+  (format t "99 - quit menu ~%")
+  (format t " 0 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  (format t "your choice: ~d ~%" nmbr)
+  
+  (cond
+    ((equal nmbr 3)
+      (execute '(nav1.tcb-joystick-navigation)))
+    ((equal nmbr 4)
+      (execute '(nav1.tcb-stop-joystick-navigation)))
+    ((equal nmbr 5)
+     (format t "Approach location - known locations: ~%")
+     (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
+     (format t "Enter location name: ~%")
+     (setf locations-var (string-upcase (read-line nil)))
+     (setf locations-var (intern locations-var))
+     (format t "your choice: ~a ~%" locations-var)
+       (execute '(localizationModInst.tcb-activate-localization))
+       (execute `(nav1.tcb-approach-location ,locations-var))
+       (execute '(localizationModInst.tcb-deactivate-localization)))
+       
+       
+    ((equal nmbr 6)
+      (execute '(start-mapping)))
+    ((equal nmbr 7)
+     (let ((mappath nil))
+       (format t "Enter dir name and path where to save the map: ~%")
+       (format t "- empty string generates directory with timestamp: /tmp/map-2019-xxx ~%")
+       (format t "- or enter a path e.g.: /tmp/savedMaps/ ~%")
+       (setf mappath (read-line nil))
+       (format t "your path: ~s ~%" mappath)
+       (cond
+         ((equal "" mappath)
+           (multiple-value-bind (second minute hour date month year)
+             ;;get timestamp
+             (get-decoded-time)
+             ;;create dir
+             (setf mappath (format NIL "/tmp/map-~d-~d-~2,'0d_~2,'0d-~2,'0d-~2,'0d/" year month date hour minute second))
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)))
+         (T
+           (if (char/= #\/ (char mappath (- (length mappath) 1)))
+             (setf mappath (format nil "~a/" mappath)))
+
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)
+          ))
+       (format t "Matthias map path: ~s ~%" mappath)
+       (execute `(stop-mapping ,mappath))))
+    ((equal nmbr 8)
+     (execute '(abort-mapping)))
+       
+       
+    ;((equal nmbr 95)
+     ;(add-locations))
+    ((equal nmbr 96)
+     (show-locations))
+    ;((equal nmbr 97)
+    ; (save-positions-from-kb-to-file))
+    ;((equal nmbr 98)
+    ; (load-positions-from-file-to-kb))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit))))))
+
+(menu)

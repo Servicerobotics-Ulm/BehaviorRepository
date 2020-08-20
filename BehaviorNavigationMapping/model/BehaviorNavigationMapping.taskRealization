@@ -1,0 +1,11 @@
+TaskRealizationModel BehaviorNavigationMapping {
+		AbstractCoordinationModuleInstance nav1 coordModuleDef CommNavigationObjects.NavigationModule
+        AbstractCoordinationModuleInstance kbModInst coordModuleDef CommBasicObjects.KBModule
+        AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
+        AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
+        AbstractCoordinationModuleInstance slam coordModuleDef CommLocalizationObjects.SlamModule
+        AbstractCoordinationModuleInstance vis coordModuleDef CommBasicObjects.VisualizationModule
+
+        //this task realization is a dummy (see smartTCL file)
+        TaskRealization CommNavigationObjects.testTask { }	
+}
