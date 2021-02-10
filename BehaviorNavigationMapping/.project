@@ -37,7 +37,7 @@
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
-		<nature>org.smartmdsd.utils.natures.BehaviorNature</nature>
+		<nature>org.eclipse.smartmdsd.ui.natures.BehaviorNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 	</natures>
 </projectDescription>

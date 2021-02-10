@@ -8,6 +8,7 @@
 (defun menu()
   (execute '(navigation.initNavigation))
   (execute '(navigation.loadNavigationMap "navigation-map"))
+  ;(execute '(localizationModInst.tcb-load-localization-map-only "localization-map.yaml"))
   (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
 (loop
 
@@ -18,12 +19,7 @@
   (format t " 3 - Start Joystick Navigation ~%")
   (format t " 4 - Stop Joystick Navigation ~%")
   (format t " ---------------------------------------------------- ~%")
-  (format t " 5 - Approach location ~%")
-  (format t " ---------------------------------------------------- ~%")
-  (format t " 6 - Start Mapping ~%")
-  (format t " 7 - Stop Mapping - Save Maps ~%")
-  (format t " ---------------------------------------------------- ~%")
-  (format t " 8 - Abort Mapping ~%")
+  (format t " 5 - Approach location~%")
   (format t " ---------------------------------------------------- ~%")
   ;(format t " 95 - Add new locations ~%")
   (format t " 96 - Show locations ~%")
@@ -49,41 +45,6 @@
        (execute '(localizationModInst.tcb-activate-localization))
        (execute `(navigation.approachLocation,locations-var))
        (execute '(localizationModInst.tcb-deactivate-localization)))
-       
-       
-    ((equal nmbr 6)
-      (execute '(start-mapping)))
-    ((equal nmbr 7)
-     (let ((mappath nil))
-       (format t "Enter dir name and path where to save the map: ~%")
-       (format t "- empty string generates directory with timestamp: /tmp/map-2019-xxx ~%")
-       (format t "- or enter a path e.g.: /tmp/savedMaps/ ~%")
-       (setf mappath (read-line nil))
-       (format t "your path: ~s ~%" mappath)
-       (cond
-         ((equal "" mappath)
-           (multiple-value-bind (second minute hour date month year)
-             ;;get timestamp
-             (get-decoded-time)
-             ;;create dir
-             (setf mappath (format NIL "/tmp/map-~d-~d-~2,'0d_~2,'0d-~2,'0d-~2,'0d/" year month date hour minute second))
-             (format t "Save maps in dir: ~s~%" mappath)
-             ;; sleep to make the output readable
-             (sleep 2)))
-         (T
-           (if (char/= #\/ (char mappath (- (length mappath) 1)))
-             (setf mappath (format nil "~a/" mappath)))
-
-             (format t "Save maps in dir: ~s~%" mappath)
-             ;; sleep to make the output readable
-             (sleep 2)
-          ))
-       (format t "Matthias map path: ~s ~%" mappath)
-       (execute `(stop-mapping ,mappath))))
-    ((equal nmbr 8)
-     (execute '(abort-mapping)))
-       
-       
     ;((equal nmbr 95)
      ;(add-locations))
     ((equal nmbr 96)

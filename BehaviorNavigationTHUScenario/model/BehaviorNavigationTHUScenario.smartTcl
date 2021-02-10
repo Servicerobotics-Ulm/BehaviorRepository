@@ -9,63 +9,13 @@
             (speech "home position")
             (approach-type (region))
             (approach-region-pose (0 0 0))
-            (approach-region-dist 75)
+            (approach-region-dist 150)
             (approach-exact-pose (0 0 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
             (orientation-region (position 1000 0))
             (orientation-exact (position 1000 0))
             (backward-dist 500)))
-
-
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name sofa)
-            (speech "sofa")
-            (approach-type (region))
-            (approach-region-pose (0 8000 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (0 8000 0))
-            (approach-exact-dist 100)
-            (approach-exact-safetycl 0)
-            (orientation-region (position 1000 9000))
-            (orientation-exact (position 1000 9000))
-            (backward-dist 500)))
-            
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name table)
-            (speech "table")
-            (approach-type (region))
-            (approach-region-pose (2500 -2000 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (2500 -2000 0))
-            (approach-exact-dist 100)
-            (approach-exact-safetycl 0)
-            (orientation-region (position 2500 -3000))
-            (orientation-exact (position 2500 -3000))
-            (backward-dist 500)))
-            
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name bench)
-            (speech "bench")
-            (approach-type (region))
-            (approach-region-pose (-3000 2200 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (-3000 2200 0))
-            (approach-exact-dist 100)
-            (approach-exact-safetycl 0)
-            (orientation-region (position -4000 2200))
-            (orientation-exact (position -4000 2200))
-            (backward-dist 500)))
-            
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
@@ -76,7 +26,7 @@
             (approach-region-pose (-1000 2000 0))
             (approach-region-dist 150)
             (approach-exact-pose (600 1700 0))
-            (approach-exact-dist 100)
+            (approach-exact-dist 50)
             (approach-exact-safetycl 0)
             (orientation-region (position 500 2000))
             (orientation-exact (position 600 1900))
@@ -96,6 +46,55 @@
             (orientation-region (position 0 0))
             (orientation-exact (position 0 0))
             (backward-dist 500)))
+                        
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name CorridorCenter)
+            (speech "CorridorCenter")
+            (approach-region-pose (-7200 4200 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-7200 4200 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -7200 4700))
+            (orientation-exact (position -7200 4700))
+            (backward-dist 500)))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name Blackboard)
+            (speech "Blackboard")
+            (approach-type (region))
+            (approach-region-pose (1500 -7000 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1500 -7000 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1500 -7500))
+            (orientation-exact (position 1500 -7500))
+            (backward-dist 500)))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name MainEntry)
+            (speech "MainEntry")
+            (approach-type (region))
+            (approach-region-pose (20000 -12500 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (20000 -12500 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 20000 -12000))
+            (orientation-exact (position 20000 -12000))
+            (backward-dist 500)))
+            
+            
 
 
 (tcl-kb-update 
@@ -117,9 +116,11 @@
   :value '(
             (is-a room)
             (name room-1)
-            (speech "zafh lab")
-            (size (20000 20000))
-            (offset (-10000 -10000))))
+            (speech "Lab")
+            ;(size (50000 50000))
+            ;(offset (-25000 -25000))))
+            (size (80000 80000))
+            (offset (-40000 -40000))))
 
 
 

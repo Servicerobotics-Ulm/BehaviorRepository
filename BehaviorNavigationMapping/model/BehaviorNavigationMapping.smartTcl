@@ -118,8 +118,8 @@
             (is-a room)
             (name room-1)
             (speech "zafh lab")
-            (size (50000 50000))
-            (offset (-25000 -25000))))
+            (size (20000 20000))
+            (offset (-10000 -10000))))
 
 
 

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>BehaviorSLAMRGBdLaserCompare</name>
+	<name>BehaviorNavigationTHUScenario</name>
 	<comment></comment>
 	<projects>
 		<project>CommBasicObjects</project>
 		<project>CommLocalizationObjects</project>
 		<project>CommNavigationObjects</project>
-		<project>DomainVision</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -33,12 +32,12 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.eclipse.smartmdsd.ui.natures.BehaviorNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
-		<nature>org.eclipse.smartmdsd.ui.natures.BehaviorNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 	</natures>
 </projectDescription>

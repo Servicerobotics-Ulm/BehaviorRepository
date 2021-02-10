@@ -6,12 +6,10 @@
 (defvar nmbr nil)
 
 (defun menu()
-  (execute '(nav1.tcb-init-navigation))
-  (execute '(nav1.tcb-load-navigation-map "navigation-map"))
+  (execute '(navigation.initNavigation))
+  (execute '(navigation.loadNavigationMap "navigation-map"))
+  (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
 
-  (execute '(localizationModInst.tcb-load-localization-map "localization-map.yaml"))
-  (execute '(localizationModInst.tcb-trigger-global-localization))
-  (execute '(localizationModInst.tcb-set-robot-pose 0 0 0))
 (loop
 
   (let ((known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
@@ -34,9 +32,9 @@
   
   (cond
     ((equal nmbr 3)
-      (execute '(nav1.tcb-joystick-navigation)))
+      (execute '(navigation.tcb-joystick-navigation)))
     ((equal nmbr 4)
-      (execute '(nav1.tcb-stop-joystick-navigation)))
+      (execute '(navigation.tcb-stop-joystick-navigation)))
     ((equal nmbr 5)
      (format t "Approach location - known locations: ~%")
      (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
@@ -45,7 +43,7 @@
      (setf locations-var (intern locations-var))
      (format t "your choice: ~a ~%" locations-var)
        (execute '(localizationModInst.tcb-activate-localization))
-       (execute `(nav1.tcb-approach-location ,locations-var))
+       (execute `(navigation.approachLocation,locations-var))
        (execute '(localizationModInst.tcb-deactivate-localization)))
     ;((equal nmbr 95)
      ;(add-locations))
