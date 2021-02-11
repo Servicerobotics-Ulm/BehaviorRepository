@@ -9,48 +9,13 @@
             (speech "home position")
             (approach-type (region))
             (approach-region-pose (0 0 0))
-            (approach-region-dist 75)
+            (approach-region-dist 150)
             (approach-exact-pose (0 0 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
             (orientation-region (position 1000 0))
             (orientation-exact (position 1000 0))
             (backward-dist 500)))
-                        
-
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name pose2)
-            (speech "TWO")
-            (approach-region-pose (800 0 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (1000 0 0))
-            (approach-exact-dist 50)
-            (approach-exact-safetycl 0)
-            (orientation-region (position 0 0))
-            (orientation-exact (position 0 0))
-            (backward-dist 500)))
-            
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name Blackboard)
-            (speech "Blackboard")
-            (approach-type (region))
-            (approach-region-pose (1500 -7000 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (1500 -7000 0))
-            (approach-exact-dist 100)
-            (approach-exact-safetycl 0)
-            (orientation-region (position 1500 -7500))
-            (orientation-exact (position 1500 -7500))
-            (backward-dist 500)))
-            
-            
-
             
 (tcl-kb-update 
   :key '(is-a name) 
@@ -67,8 +32,40 @@
             (orientation-region (position 500 2000))
             (orientation-exact (position 600 1900))
             (backward-dist 500)))
+                        
 
-
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name pose2)
+            (speech "pose-two")
+            (approach-type (region))
+            (approach-region-pose (800 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1000 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 0 0))
+            (orientation-exact (position 0 0))
+            (backward-dist 500)))     
+        
+           
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name Blackboard)
+            (speech "Blackboard")
+            (approach-type (region))
+            (approach-region-pose (1500 -4800 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1500 -4800 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1500 -5300))
+            (orientation-exact (position 1500 -5300))
+            (backward-dist 500)))
 
 (tcl-kb-update 
   :key '(is-a name) 
