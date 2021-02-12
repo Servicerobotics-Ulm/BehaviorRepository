@@ -69,13 +69,13 @@
             (name Blackboard)
             (speech "Blackboard")
             (approach-type (region))
-            (approach-region-pose (1500 -7000 0))
+            (approach-region-pose (1500 -4800 0))
             (approach-region-dist 150)
-            (approach-exact-pose (1500 -7000 0))
+            (approach-exact-pose (1500 -4800 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 1500 -7500))
-            (orientation-exact (position 1500 -7500))
+            (orientation-region (position 1500 -5300))
+            (orientation-exact (position 1500 -5300))
             (backward-dist 500)))
             
 (tcl-kb-update 
