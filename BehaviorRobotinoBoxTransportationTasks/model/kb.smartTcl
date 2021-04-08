@@ -1,0 +1,173 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Robot
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 1000)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room intralogistik_area)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name intralogistik_area)
+            (speech "intralogistik_area")        
+            (size (20000 20000))
+            (offset (-10000 -10000))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LOCATIONS
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name home)
+            (speech "home location")
+            (approach-type (region))
+            (approach-region-pose (0 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (0 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1000 0))
+            (orientation-exact (position 1000 0))
+            (backward-dist 500)))
+
+;; approach location to station 0
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name zero)
+            (speech "station zero")
+            (approach-type (region))
+            (approach-region-pose (1510 1260 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1510 1260 0))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1760 1850))
+            (orientation-exact (position 1760  1850))
+            (backward-dist 500)))
+
+;; approach location to station 1
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name one)
+            (speech "station one")
+            (approach-type (region))
+            (approach-region-pose (-1290 1320 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-1290 1320 0))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -1760 1950))
+            (orientation-exact (position -1760 1950))
+            (backward-dist 500)))
+
+
+;; approach location to station 2
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name two)
+            (speech "station two")
+            (approach-type (region))
+            (approach-region-pose (-1480 -1210 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-1480 -1210 0))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -1820 -1990))
+            (orientation-exact (position -1820 -1990))
+            (backward-dist 500)))
+
+
+;; approach location to station 3
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name three)
+            (speech "station three")
+            (approach-type (region))
+            (approach-region-pose (1280 -1136 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1280 -1136))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1750 -1980))
+            (orientation-exact (position 1750 -1980))
+            (backward-dist 500)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; STATIONS
+(tcl-kb-update 
+  :key '(is-a id) 
+  :value '(
+            (is-a station)
+            (id 0)
+            (locations zero)
+            (approach-location zero)
+            (docking-type LASER-IR)
+            (type mps)
+            ))
+
+(tcl-kb-update 
+  :key '(is-a id) 
+  :value '(
+            (is-a station)
+            (id 1)            
+            (approach-location one)
+            (docking-type LASER-IR)            
+            (type mps)))
+
+(tcl-kb-update 
+  :key '(is-a id) 
+  :value '(
+            (is-a station)
+            (id 2)            
+            (approach-location two)
+            (docking-type LASER-IR)            
+            (type mps)))
+
+(tcl-kb-update 
+  :key '(is-a id) 
+  :value '(
+            (is-a station)
+            (id 3)
+            (approach-location three)            
+            (docking-type LASER-IR)
+            (type MANUAL)))
+            
+;; Station types
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name mps)          
+            (docking-type LASER-IR)
+           )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name MANUAL)          
+            (docking-type LASER-IR)
+           )
+)

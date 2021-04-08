@@ -1,0 +1,125 @@
+(define-tcb (tcbStartup)
+
+  (action ( 
+    (format t "################################## tcbStartup ~%")
+  ))
+
+  (plan(
+    (navigation.initNavigation)
+    (navigation.loadNavigationMap "navigation-map")
+    (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+    (localizationModInst.tcb-trigger-global-localization)
+    (localizationModInst.localizationSetRobotPose 0 0 0)
+    )
+  )  
+)
+
+; (execute '(driveToStation 0))
+(realize-tcb (driveToStation ?stationId)
+	(action (
+		(format t "driveToStation ~s ~%" '?stationId)
+		
+		(let* (
+			(station (tcl-kb-query :key '(is-a id) :value '( (is-a station) (id ?stationId))))
+			(goal (get-value station 'approach-location))
+                     )
+                     
+                     (format t "goal name ~s ~%" goal)
+                     
+                     (tcl-push-back-plan :plan 
+                    	`(
+                     	 	(localizationModInst.tcb-activate-localization)
+    			  	(navigation.approachLocation ,goal)
+    			  	(localizationModInst.tcb-deactivate-localization)
+    			 )	
+                     )
+               )
+
+	))
+)
+
+; (execute '(dockToMPSStation 0 1)) 
+; beltId > 0
+(realize-tcb (dockToMPSStation ?stationId ?beltId)
+	(action (
+
+		(format t "dockToMPSStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+	))
+	(plan (
+
+		(MPS.tcb-mps-station-dock ?stationId ?beltId)
+	))
+)
+
+; (execute '(undockFromMPSStation)) 
+(realize-tcb (undockFromMPSStation)
+	(action (
+
+		(format t "undockFromMPSStation~%")
+	))
+	(plan (
+
+		(MPS.tcb-mps-station-undock-mps)
+	))
+)
+
+; (execute '(unloadTo 0))
+(realize-tcb (unloadTo ?stationId)
+	(action (
+
+		(format t "unloadTo ~s~%" '?stationId)
+	))
+	(plan (
+
+		(MPS.tcb-mps-station-unload-belts ?stationId)
+	))
+)
+
+; (execute '(loadFrom 0))
+(realize-tcb (loadFrom ?stationId)
+	(action (
+
+		(format t "loadFrom ~s~%" '?stationId)
+	))
+	(plan (
+
+		(MPS.tcb-mps-station-load-belts ?stationId)
+	))
+)
+
+;;--------------------------------------------------------------------------------------------------------------
+;; deliverBoxToStation
+;; input<number, number > 0> 
+;;---------------------------------------------------------------------------------------------------------------
+; (execute '(deliverBoxToStation 0 1)) 
+(realize-tcb (deliverBoxToStation ?stationId ?beltId)
+	(action (
+
+		(format t "deliverBoxToStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+	))
+	(plan (
+
+		(driveToStation ?stationId)
+		(dockToMPSStation ?stationId ?beltId)
+		(unloadTo ?stationId)
+		(undockFromMPSStation)
+	))
+)
+
+;;--------------------------------------------------------------------------------------------------------------
+;; collectBoxFromStation
+;; ;; input<number, number > 0>
+;;---------------------------------------------------------------------------------------------------------------
+; (execute '(collectBoxFromStation 0 1)) 
+(realize-tcb (collectBoxFromStation ?stationId ?beltId)
+  (action (            
+            (format t "collectBoxFromStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+                   
+            ))
+  (plan (          
+ 		(driveToStation ?stationId)
+ 		(dockToMPSStation ?stationId ?beltId)
+ 		(loadFrom ?stationId)
+ 		(undockFromMPSStation)
+          ))
+)

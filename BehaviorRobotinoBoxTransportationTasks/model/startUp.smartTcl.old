@@ -1,0 +1,139 @@
+(format t "INIT DONE ~%")
+
+(defun format-locations (s obj colonmod at-sign) (declare (ignore colonmod)) (declare (ignore at-sign)) (format s "~s" (get-value obj 'name)))
+(defun format-stations  (s obj colonmod at-sign) (declare (ignore colonmod)) (declare (ignore at-sign)) (format s "~s" (get-value obj 'id)))
+
+;; MENU
+(defvar nmbr nil)
+
+(defun menu()
+  (execute '(navigation.initNavigation))
+  (execute '(navigation.loadNavigationMap "navigation-map"))  
+  (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+  
+(loop
+
+  (let 
+  (
+    (known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location))))
+    (known-stations  (tcl-kb-query-all :key '(is-a) :value '((is-a station))))
+    (beltId 1)   
+  )
+
+  (format t "~%MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")  
+  (format t " Tranportation Tasks ~%")
+  (format t " ---------------------------------------------------- ~%")  
+  (format t " 01 - Drive to station ~%")
+  (format t " 02 - Dock to station ~%")
+  (format t " 03 - UnDock from station ~%")
+  (format t " 04 - Deliver a box to station ~%")
+  (format t " 05 - Collect a box from station ~%")
+  (format t " 06 - Test ~%")
+  (format t " 98 - show-stations ~%")
+  (format t " 99 - quit menu ~%")
+  (format t " 00 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  
+  (format t "your choice: ~d ~%" nmbr)  
+  
+  (cond
+    ((equal nmbr 1)
+            (format t "Drive to station - known stations: ~%")
+
+            ;; show available stations
+            (format t "~%~{~/format-stations/~^, ~}~%~%" known-stations)
+            ;; prompt user to input station id
+            (format t "Enter stations id: ~%")
+            (setf stationid (string-upcase (read-line nil)))
+            (setf stationid (intern stationid))
+            (format t "your choice: ~a ~%" stationid)
+            (execute `(driveToStation, stationid))
+
+            )
+    ((equal nmbr 2)
+    (format t "Dock to station - known stations: ~%")
+            
+    )
+
+    ((equal nmbr 3)
+    (format t "Undock from station - known stations: ~%")
+        
+    ;(execute '(deliverBoxToStation))
+    )
+
+
+    ((equal nmbr 4)
+    
+    (format t "Deliver a box to station - known stations: ~%")
+        ;; show available stations
+    (format t "~%~{~/format-stations/~^, ~}~%~%" known-stations)    
+            ;; prompt user to input station id
+    (format t "Enter stations id: ~%")
+    (setf stationid (string-upcase (read-line nil)))
+    (setf stationid (intern stationid))
+    ;(setf beltId (intern "1"))
+    (format t "your choice stationId: ~a  : beltId = ~a~%" stationid beltId)  
+    (execute `(deliverBoxToStation stationid 'beltId))
+    )
+
+
+;;Testing existing tcb
+    ((equal nmbr 5)    
+    (format t "Collect a box from station - known stations: ~%")
+      (format t "Drive to station - known stations: ~%")
+            ;; show available stations
+            (format t "~%~{~/format-stations/~^, ~}~%~%" known-stations)
+            ;; prompt user to input station id
+            (format t "Enter stations id: ~%")
+            (setf stationid (string-upcase (read-line nil)))
+            (setf stationid (intern stationid))
+            (format t "your choice: station = ~a :: Belt Id = ~a ~%" stationid beltId)
+    (execute `(tcb-fetch-from-mps-station stationid beltId)
+    ))
+
+
+
+
+
+;; Testing Individual steps
+    ((equal nmbr 6)    
+      (format t "Collect a box from station - known stations: ~%")
+      (format t "Drive to station - known stations: ~%")
+            ;; show available stations
+            (format t "~%~{~/format-stations/~^, ~}~%~%" known-stations)
+            ;; prompt user to input station id
+            (format t "Enter stations id: ~%")
+            (setf stationid (string-upcase (read-line nil)))
+            (setf stationid (intern stationid))
+            (format t "your choice: ~a ~%" stationid)
+            (let* ((station (tcl-kb-query :key '(is-a id) :value `((is-a station)(id stationid))))
+	            (station-approach-location (get-value station approach-location)))
+              (format t "=========================>>> tcb-approach-station: ~a : station-approach-location: ~a ~%" stationid station-approach-location)            
+              (execute '(localizationModInst.tcb-activate-localization))
+              (execute `(navigation.approachLocation ,station-approach-location))
+              (execute '(localizationModInst.tcb-deactivate-localization))                                  
+            (format t "============================>>> approached: ~a ~%" 'stationid)
+            (execute `(mpsModInst.tcb-mps-station-dock stationId beltId))        
+    ))
+
+    ((equal nmbr 98)
+     (show-stations))
+    ;((equal nmbr 97)
+    ; (save-positions-from-kb-to-file))
+    ;((equal nmbr 98)
+    ; (load-positions-from-file-to-kb))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit))
+
+      )
+      )
+      )
+      )
+
+(menu)
