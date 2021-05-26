@@ -1,0 +1,58 @@
+(format t "INIT DONE ~%")
+
+;; MENU
+(defvar nmbr nil)
+
+(defun menu()
+(loop 
+
+  (format t "~%MENU~%====~%~%")  
+  (format t " 1 - Start Mapping ~%")
+  (format t " 2 - Stop Mapping - Save Maps ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 3 - Abort Mapping ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t "99 - quit menu ~%")
+  (format t " 0 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  (format t "your choice: ~d ~%" nmbr)
+  
+  (cond
+    ((equal nmbr 1)
+      (execute '(start-mapping)))
+    ((equal nmbr 2)
+     (let ((mappath nil))
+       (format t "Enter dir name and path where to save the map: ~%")
+       (format t "- empty string generates directory with timestamp: /tmp/map-2019-xxx ~%")
+       (format t "- or enter a path e.g.: /tmp/savedMaps/ ~%")
+       (setf mappath (read-line nil))
+       (format t "your path: ~s ~%" mappath)
+       (cond
+         ((equal "" mappath)
+           (multiple-value-bind (second minute hour date month year)
+             ;;get timestamp
+             (get-decoded-time)
+             ;;create dir
+             (setf mappath (format NIL "/tmp/map-~d-~d-~2,'0d_~2,'0d-~2,'0d-~2,'0d/" year month date hour minute second))
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)))
+         (T
+           (if (char/= #\/ (char mappath (- (length mappath) 1)))
+             (setf mappath (format nil "~a/" mappath)))
+
+             (format t "Save maps in dir: ~s~%" mappath)
+             ;; sleep to make the output readable
+             (sleep 2)
+          ))
+       (format t "Matthias map path: ~s ~%" mappath)
+       (execute `(stop-mapping ,mappath))))
+    ((equal nmbr 3)
+     (execute '(abort-mapping)))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit)))))
+(menu)

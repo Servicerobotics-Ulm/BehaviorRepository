@@ -1,0 +1,37 @@
+(realize-tcb (start-mapping)
+  (action (	
+            (format t "===== start-mapping~%")))
+  (plan (
+
+          ;;set base to zero
+          (base.resetBase)
+
+          (vis.startVisualizationOf 'map1 "ComponentGMapping" "newestMapPushServer")
+         
+
+          ;;start mapping
+          (slam.tcb-start-mapping 0 0 0))))
+
+
+(realize-tcb (stop-mapping ?mapDir)
+  (action (	
+            (format t "===== stop-mapping~%")))
+  (plan (
+          ;;stop mapping save maps
+          (slam.tcb-stop-mapping "laserMap" ?mapDir)
+
+          (vis.stopVisualizationOf 'map1)
+)))
+
+
+(realize-tcb (abort-mapping)
+  (action (	
+            (format t "===== abort-mapping~%")))
+  (plan (
+          ;;stop mapping save maps
+          (slam.tcb-abort-mapping)
+         
+
+          (vis.stopVisualizationOf 'map1)
+         
+)))

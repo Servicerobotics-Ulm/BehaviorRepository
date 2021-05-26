@@ -16,86 +16,68 @@
             (orientation-region (position 1000 0))
             (orientation-exact (position 1000 0))
             (backward-dist 500)))
+            
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name pose1)
-            (speech "pose-one")
+            (name refrigerator)
+            (speech "refrigerator")
             (approach-type (region))
-            (approach-region-pose (-1000 2000 0))
+            (approach-region-pose (6100 3500 0))
             (approach-region-dist 150)
-            (approach-exact-pose (600 1700 0))
+            (approach-exact-pose (6100 3500 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 500 2000))
-            (orientation-exact (position 600 1900))
-            (backward-dist 500)))
-
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name pose2)
-            (speech "TWO")
-            (approach-region-pose (800 0 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (1000 0 0))
-            (approach-exact-dist 50)
-            (approach-exact-safetycl 0)
-            (orientation-region (position 0 0))
-            (orientation-exact (position 0 0))
-            (backward-dist 500)))
-                        
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
-            (is-a location)
-            (name CorridorCenter)
-            (speech "CorridorCenter")
-            (approach-region-pose (-7200 4200 0))
-            (approach-region-dist 150)
-            (approach-exact-pose (-7200 4200 0))
-            (approach-exact-dist 50)
-            (approach-exact-safetycl 0)
-            (orientation-region (position -7200 4700))
-            (orientation-exact (position -7200 4700))
-            (backward-dist 500)))
+            (orientation-region (position 6100 5000))
+            (orientation-exact (position 6100 5000))))
             
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name Blackboard)
-            (speech "Blackboard")
+            (name whiteshelf)
+            (speech "whiteshelf")
             (approach-type (region))
-            (approach-region-pose (1500 -4800 0))
+            (approach-region-pose (8000 -2500 0))
             (approach-region-dist 150)
-            (approach-exact-pose (1500 -4800 0))
+            (approach-exact-pose (8000 -2500 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 1500 -5300))
-            (orientation-exact (position 1500 -5300))
-            (backward-dist 500)))
+            (orientation-region (position 10000 -2500))
+            (orientation-exact (position 10000 -2500))))
             
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name MainEntry)
-            (speech "MainEntry")
+            (name bench)
+            (speech "bench")
             (approach-type (region))
-            (approach-region-pose (20000 -12500 0))
+            (approach-region-pose (1500 3000 0))
             (approach-region-dist 150)
-            (approach-exact-pose (20000 -12500 0))
+            (approach-exact-pose (1500 3000 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 20000 -12000))
-            (orientation-exact (position 20000 -12000))
-            (backward-dist 500)))
+            (orientation-region (position 1500 5000))
+            (orientation-exact (position 1500 5000))))
             
             
-
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name table)
+            (speech "table")
+            (approach-type (region))
+            (approach-region-pose (-2000 -2000 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-2000 -2000 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -4000 -2000))
+            (orientation-exact (position -4000 -2000))))
+            
 
 (tcl-kb-update 
   :key '(is-a name) 
@@ -157,73 +139,3 @@
 
 ;; SCENARIO MEMORY 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; testTask
-
-; (execute '(navigationTestTask))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; REACTIVE NAV
-; (execute '(nav1.tcb-reactive-navigation))
-; (execute '(nav1.tcb-stop-reactive-navigation))
-
-;; JOYSTICK
-; (execute '(nav1.tcb-joystick-navigation))
-; (execute '(nav1.tcb-stop-joystick-navigation))
-;;
-; (execute '(localizationModInst.tcb-activate-localization))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;
-;; (execute '(cameraInst.activateCameraPush))
-;; (execute '(cameraInst.activateCameraQuery))
-;; (execute '(cameraInst.deactivateCamera))
-
-;; (execute '(laserfromrgbdInst.activateLaserGenaration))
-;; (execute '(laserfromrgbdInst.dectivateLaserGenaration))
-
-
-
-(realize-tcb (navigationTestTask)
-  (action (	
-            (format t "===== navigationTestTask~%")))
-  (plan (
-
-          (navigation.tcb-init-navigation)
-          (navigation.tcb-load-navigation-map "navigation-map")
-
-          (localizationModInst.tcb-load-localization-map "localization-map.yaml")
-          (localizationModInst.tcb-trigger-global-localization)
-          (localizationModInst.tcb-set-robot-pose 0 0 0)
-
-          (localizationModInst.tcb-activate-localization)
-          (navigation.tcb-move-robot 'approach-region pose1)
-          (navigation.tcb-move-robot 'approach-exact pose1)
-          (navigation.tcb-move-robot 'backward pose1)
-          (navigation.tcb-move-robot 'backward-abs 100)
-          (navigation.tcb-move-robot 'plain 1000 0 100)
-          (navigation.tcb-move-robot 'orientate-region pose1)
-          (navigation.tcb-move-robot 'orientate-exact pose1)
-          (navigation.tcb-move-robot 'approach-region home)
-          (navigation.tcb-move-robot 'orientate-exact home)
-          (navigation.tcb-move-robot 'orientate-angle-absolute 45)
-          (navigation.tcb-move-robot 'orientate-angle-relative 135)
-          (navigation.tcb-move-robot 'orientate-angle-relative 180)
-          (navigation.tcb-approach-location pose1) ;region
-          (localizationModInst.tcb-deactivate-localization)
-
-          (base.getBasePose => ?x ?y ?yaw)
-          (base.getBaseCharging => ?charging)
-          (echoTask ?x ?y ?yaw ?charging))))
-
-
-
-(realize-tcb (echoTask ?x ?y ?yaw ?charging)
-  (action (	
-            (format t "===== echoTask: ~a ~a ~a ~a ~%" ?x ?y ?yaw ?charging))))
-
-;; testTask
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
