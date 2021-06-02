@@ -21,62 +21,79 @@
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name refrigerator)
-            (speech "refrigerator")
+            (name pose1)
+            (speech "pose-one")
             (approach-type (region))
-            (approach-region-pose (6100 3500 0))
+            (approach-region-pose (-1000 2000 0))
             (approach-region-dist 150)
-            (approach-exact-pose (6100 3500 0))
+            (approach-exact-pose (600 1700 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 6100 5000))
-            (orientation-exact (position 6100 5000))))
-            
+            (orientation-region (position 500 2000))
+            (orientation-exact (position 600 1900))
+            (backward-dist 500)))
+
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name whiteshelf)
-            (speech "whiteshelf")
-            (approach-type (region))
-            (approach-region-pose (8000 -2500 0))
+            (name pose2)
+            (speech "pose-two")
+            (approach-region-pose (800 0 0))
             (approach-region-dist 150)
-            (approach-exact-pose (8000 -2500 0))
+            (approach-exact-pose (1000 0 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 10000 -2500))
-            (orientation-exact (position 10000 -2500))))
-            
+            (orientation-region (position 0 0))
+            (orientation-exact (position 0 0))
+            (backward-dist 500)))
+
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name bench)
-            (speech "bench")
-            (approach-type (region))
-            (approach-region-pose (1500 3000 0))
+            (name CorridorCenter)
+            (speech "CorridorCenter")
+            (approach-region-pose (-7200 4200 0))
             (approach-region-dist 150)
-            (approach-exact-pose (1500 3000 0))
+            (approach-exact-pose (-7200 4200 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position 1500 5000))
-            (orientation-exact (position 1500 5000))))
-            
-            
+            (orientation-region (position -7200 4700))
+            (orientation-exact (position -7200 4700))
+            (backward-dist 500)))
+
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
-            (name table)
-            (speech "table")
+            (name Blackboard)
+            (speech "Blackboard")
             (approach-type (region))
-            (approach-region-pose (-2000 -2000 0))
+            (approach-region-pose (1500 -4800 0))
             (approach-region-dist 150)
-            (approach-exact-pose (-2000 -2000 0))
+            (approach-exact-pose (1500 -4800 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (position -4000 -2000))
-            (orientation-exact (position -4000 -2000))))
+            (orientation-region (position 1500 -5300))
+            (orientation-exact (position 1500 -5300))
+            (backward-dist 500)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name MainEntry)
+            (speech "MainEntry")
+            (approach-type (region))
+            (approach-region-pose (20000 -12500 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (20000 -12500 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 20000 -12000))
+            (orientation-exact (position 20000 -12000))
+            (backward-dist 500)))
             
 
 (tcl-kb-update 
@@ -98,14 +115,10 @@
   :value '(
             (is-a room)
             (name room-1)
-            (speech "Lab")
-            ;(size (50000 50000))
-            ;(offset (-25000 -25000))))
+            (speech "room-one")            
             (size (80000 80000))
             (offset (-40000 -40000))))
-
-
-
+            
 (defun show-locations ()
   (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
     (dolist (obj obj-list)
