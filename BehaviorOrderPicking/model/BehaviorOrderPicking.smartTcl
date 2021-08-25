@@ -1,0 +1,127 @@
+;(execute '(manipulationModule.queryStateFromOpenRave))
+;(execute '(tcbStartup))
+;(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+(define-tcb (tcbStartup)
+
+  (action ( 
+    (format t "################################## tcbStartup ~%")
+  ))
+
+  (plan(
+    (navigation.initNavigation)
+    (navigation.loadNavigationMap "navigation-map")
+    (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+    (localizationModInst.tcb-trigger-global-localization)
+    (localizationModInst.localizationSetRobotPose 0 0 0)
+    )
+  )  
+)
+
+;(execute '(goto home))
+;(execute '(goto rack1))
+;(execute '(goto rack2))
+(realize-tcb (goto ?pose)
+	(plan(
+       	(localizationModInst.tcb-activate-localization)
+		(navigation.approachLocation ?pose)
+		(localizationModInst.tcb-deactivate-localization))
+	)
+)
+
+;(execute '(manipulationModule.clearOR))
+
+;(execute '(ptuModule.moveptu absolute 1.57 -0.55))
+;(execute '(detectBoxes))
+;(execute '(manipulationModule.loadEnvInOpenRave 0))
+;(execute '(graspObject 0 RATIOPHARM-IBU))
+
+;(execute '(rackDetectionModule.tcb-set-query-image))
+;(execute '(rackDetectionModule.setNeutral))
+;(execute '(rackDetectionModule.detectRack => ?envId ?objs))
+
+
+;(execute '(manipulationMdoule.open))
+;(execute '(manipulationModule.close))
+(realize-tcb (orderPicking2Sim)
+	(action 
+		(
+			(format t "orderPicking2Sim")
+		)
+	)
+	
+	(plan (
+		(goto rack2)
+		(detectRackSim)
+		(mGotoPre 0 CHOCO)
+		(manipulationModule.close)		 
+		;;;(gotoAnglesOR 'name drop-to-robot)
+		(gotoAnglesOR 'name hold-and-travel)
+		(goto drop-location) 
+	    (gotoAnglesOR 'name drop-to-station)
+		(manipulationModule.open)
+		(gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+(realize-tcb (orderPicking1Sim)
+	(action 
+		(
+			(format t "orderPicking1Sim")
+		)
+	)
+	
+	(plan (
+		(goto rack1)
+		(detectBoxesSim)
+		(mGotoPre 0 RATIOPHARM-IBU)
+		(manipulationModule.close)
+		;;(gotoAnglesOR 'name drop-to-robot)
+		(gotoAnglesOR 'name hold-and-travel)
+		(goto drop-location) 
+	    (gotoAnglesOR 'name drop-to-station)		
+		(manipulationModule.open)
+		(gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+(realize-tcb (orderPicking2Real)
+	(action 
+		(
+			(format t "orderPicking2Real")
+		)
+	)
+	
+	(plan (
+		(goto rack2)
+		(detectRackReal)
+		(mGotoPre 0 CHOCO)
+		(manipulationModule.close)
+		(gotoAnglesOR 'name drop-to-robot)
+		(goto home)
+		(manipulationModule.open)
+		(gotoAnglesOR 'name standby)
+    ))
+)
+
+(realize-tcb (orderPicking1Real)
+	(action 
+		(
+			(format t "orderPicking1Real")
+		)
+	)
+	
+	(plan (
+		(goto rack1)
+		(detectBoxesReal)
+		(mGotoPre 0 RATIOPHARM-IBU)
+		(manipulationModule.close)
+		(gotoAnglesOR 'name drop-to-robot)
+		(goto home)
+		(manipulationModule.open)
+		(gotoAnglesOR 'name standby)
+    ))
+)
+
+

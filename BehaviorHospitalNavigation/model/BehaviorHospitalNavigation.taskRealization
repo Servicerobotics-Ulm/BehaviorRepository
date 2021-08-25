@@ -1,0 +1,6 @@
+TaskRealizationModel NavigationTasks {
+	AbstractCoordinationModuleInstance navigation coordModuleDef CommNavigationObjects.NavigationModule
+	AbstractCoordinationModuleInstance kbModInst coordModuleDef CommBasicObjects.KBModule
+	AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
+	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
+}

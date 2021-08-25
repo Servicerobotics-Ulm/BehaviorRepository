@@ -1,0 +1,18 @@
+(define-tcb (CommissioningJobManipulation ?jobid)
+  ;(module "Seq2SeqModule")
+  (rules (rule-abort-job-error-ack))
+  (action (
+    (format t "=========================>>> Timo: CommissioningJobManipulation id: ~a ~%" ?jobid)
+ 	    (let* ((job (tcl-kb-query :key '(is-a id) :value '((is-a job)(id ?jobid))))
+		   (order-list (get-value job 'commission-order)))
+
+	           (format t "JOB ~s~%" job)
+		   (format t "ORDER LIST ~s~%" order-list)
+
+		   (tcl-push-plan :plan `(
+                                          ;(tcb-gripper open)
+                       			  (SEQ2SEQ.tcb-run-commissioning ',order-list)
+			                  ;(tcb-finalize-commissioning-job ,id)
+		                          ;(tcb-send-job-done-tcl-bridge ,id)
+			                  ;(tcb-execute-next-job)
+				         ))))))

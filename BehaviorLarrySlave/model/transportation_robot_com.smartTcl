@@ -1,0 +1,156 @@
+
+
+; (execute '(tcb-send-pose-to-transportation-robot A-FRAME-1))
+
+
+(define-tcb (tcb-send-job-done-complete-to-transportation-robot)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-job-done-complete-to-transportation-robot ~%")
+              ;; the connection to the transport robot needs to be establish
+              (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob jobdone)" ))
+  ))
+)
+
+(define-tcb (tcb-send-job-station-done-to-transportation-robot)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-job-station-done-to-transportation-robot ~%")
+            (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob stationdone)" ))
+  ))
+)
+
+(define-tcb (tcb-send-job-next-station-to-transportation-robot)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-job-next-station-to-transportation-robot ~%")
+            ;(let* ((base-state (tcl-query :server 'base :service 'pose)))
+              ;; the connection to the transport robot needs to be establish
+              ;(tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob 6 nextstation)" ))
+              (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob nextstation)" ))
+            ;)
+)))
+
+
+(define-tcb (tcb-send-pose-to-transportation-robot ?locationId)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-pose-to-transportation-robot ~%")
+            ;(let* ((base-state (tcl-query :server 'base :service 'pose)))
+            (let* ((base-state (tcl-query :server 'base :service 'baseState)))
+            ;; the connection to the transport robot needs to be establish
+            ;(tcl-param :server 'tclbridge :slot 'SEND :value (format nil "(UpdateJob dockingPose ~a ~a)" base-state '?locationId))
+;(tcl-param :server 'tclbridge :slot 'SEND :value (format nil "(UpdateJob 6 dockingPose ~a ~a)" base-state '?locationId))
+(tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob dockingPose ~a ~a)" base-state '?locationId))
+))))
+;Change-Timo-24-03-20
+
+;Change-Timo-07-04-20
+(define-tcb (tcb-send-dockpose-right ?robotId)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-dockpose-right ~a ~%" ?robotId)
+            (let* (
+                   (base-state-pose (tcl-query :server 'base :service 'baseState))
+                   ;(basePose (BASE.getBasePose => ?x ?y ?yaw))
+                   (target-offset `(300 -800)) ;x,y in robot frame
+                   (target-pose nil))
+
+                (setf target-pose (transformPoseToPoint (nth 0 base-state-pose) 
+                                                        (nth 1 base-state-pose) 
+                                                        0
+                                                        (nth 2 base-state-pose)
+                                                        0 
+                                                        0 
+                                                        (nth 0 target-offset) 
+                                                        (nth 1 target-offset) 
+                                                        0 ))
+                
+                (setf target-pose (append target-pose `( ,(+ (nth 2 base-state-pose) 3.14) 0 0)))
+                ;(tcl-param :server 'tclbridge :slot 'SEND :value (format nil "(UpdateJob ~a dockingPose ~a)" '?robotId target-pose ))))))
+                (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob dockingPose ~a)" target-pose ))))))
+
+(define-tcb (tcb-send-dockpose-right ?robotId ?x ?y ?yaw)
+  (module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-dockpose-right ~a ~a ~a ~a ~%" ?robotId ?x ?y ?yaw)
+            (let* (
+                   ;(base-state-pose (tcl-query :server 'base :service 'baseState))
+                   ;(basePose (BASE.getBasePose => ?x ?y ?yaw))
+                   (target-offset `(300 -800)) ;x,y in robot frame
+                   (target-pose nil))
+
+                (setf target-pose (transformPoseToPoint ?x 
+                                                        ?y 
+                                                        0
+                                                        ?yaw
+                                                        0 
+                                                        0 
+                                                        (nth 0 target-offset) 
+                                                        (nth 1 target-offset) 
+                                                        0 ))
+                (setf yawa ?yaw)
+                (format t "=========================>>> timo YAW ~a ~%" yawa)
+                (setf target-pose (append target-pose `( ,(+ yawa 3.14) 0 0)))
+                (format t "=========================>>> timo target-pose ~a ~%" target-pose)
+                (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob dockingPose ~a)" target-pose ))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-reset-sync-vars
+
+(define-tcb (tcb-reset-sync-vars)
+  (action (
+            (format t "=========================>>> tcb-reset-sync-vars ~%")
+            (tcl-reset-sync-variable :name 'transp-robot-docked)
+            (tcl-reset-sync-variable :name 'transp-robot-undocked)
+            '(SUCCESS (OK)))))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(execute '(seq2seq.timotest))
+(define-tcb (timotest)
+  (module "Seq2SeqModule")
+  (sync-variables (transp-robot-docked transp-robot-undocked))
+  (action (
+          (tcl-activate-event :name 'evt-commissioning-robot-com
+                                :handler 'handler-transportation-robot-com
+                                :server 'cs_seq2seq
+                                :service 'taskEvent
+                                :mode 'continuous)
+  ))
+  (plan (
+    (tcb-wait-for-transportation-robot-docked)
+  ))
+
+)
+
+
+(define-tcb (tcb-wait-for-transportation-robot-docked)
+  
+  
+  (action (
+            (format t "=========================>>> tcb-wait-for-transportation-robot-docked ~%")
+            (tcl-wait-for-sync-variable :event-name 'wait-for-transportation-robot-docked 
+              :variable-name 'transp-robot-docked :handler 'handler-wait-for-transportation-robot-docked))))
+ 
+(define-sync-handler (handler-wait-for-transportation-robot-docked)
+  (action (
+
+   (format t "SYNC HANDLER handler-wait-for-transportation-robot-docked ~%")
+    
+  )))
+
+
+(define-tcb (tcb-wait-for-transportation-robot-undocked)
+ (action (
+            (format t "=========================>>> tcb-wait-for-transportation-robot-undocked ~%")
+            (tcl-wait-for-sync-variable :event-name 'wait-for-transportation-robot-undocked :variable-name 'transp-robot-undocked :handler 'handler-wait-for-transportation-robot-undocked))))
+
+(define-sync-handler (handler-wait-for-transportation-robot-undocked)
+  (action (
+            (format t "SYNC HANDLER handler-wait-for-transportation-robot-undocked ~%"))))
+
+;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,0 +1,1096 @@
+(define-tcb (tcb-run-commissioning ?orderList)
+  (module "Seq2SeqModule")
+  (rules (rule-end-job) )
+  (sync-variables (transp-robot-docked transp-robot-undocked))
+  (action (
+    (format t "=========================>>> tcb-run-commissioning-sort-order ~a ~%" ?orderList)
+    (tcl-activate-event :name 'evt-commissioning-robot-com
+                                :handler 'handler-transportation-robot-com
+                                :server 'cs_seq2seq
+                                :service 'taskEvent
+                                :mode 'continuous)
+    (sleep 1)
+    (let* ( (sorted-order-list (sort-order-list-by-location ?orderList)))
+      (format t "Timo order-list ~a ~%" ?orderList)
+      (format t "----> Matthias sorted-order-list ~a ~%" sorted-order-list )
+      (format t "Timo sorted-order-list ~a ~%" sorted-order-list)
+      (dolist (stationOrder sorted-order-list)
+        (tcl-push-back-plan :plan `( 
+               (tcb-update-running-job-state 'DRIVING)	
+               (tcb-get-location-from-object-type ,(first (first stationOrder)) => ?location)
+               (SEQ2SEQ.tcb-send-job-next-station-to-transportation-robot)
+               (navigation.approachLocation ?location)
+               (BASE.getBasePose => ?x ?y ?yaw)
+               (SEQ2SEQ.tcb-send-dockpose-right 1 ?x ?y ?yaw)
+
+
+               ;(tcb-commission-one-station ,one-location-order-list)
+               (processSingleStation ,stationOrder)
+               
+
+               (SEQ2SEQ.tcb-send-job-station-done-to-transportation-robot)
+               (manipulationModule.gotoAnglesOR 'name standby)
+               (tcb-wait-for-transportation-robot-undocked)
+               (tcb-reset-sync-vars)
+			 )
+        )
+      )
+    )
+
+      (tcl-push-back-plan :plan 
+      	`( 
+
+           (SEQ2SEQ.tcb-send-job-done-complete-to-transportation-robot) ; Timo: sync-problem: This will currently prevent robotino from delivering the box to the station
+           ;(tcb-manipulator-pose standby)
+           ;(tcb-manipulator-pose picking-left)
+           (tcb-trigger-return (SUCCESS (JOB DONE)))
+           (tcb-wait)
+           ;(tcb-approach-location 100)
+         )
+      ))
+  )
+)
+
+
+(define-tcb (processSingleStation ?stationOrder)
+  (action (
+            (format t "=========================>>> processSingleStation ~s ~%" '?stationOrder)
+            (dolist (item '?stationOrder)
+              (tcl-push-back-plan :plan 
+              	`(
+          			(processSingleObjectType ,(first item) ,(second item))
+     			 )
+              )
+            )
+		  )
+  )
+)
+
+(define-tcb (processSingleObjectType ?type ?amount)
+  (action (
+            (format t "=========================>>> processSingleObjectType type/amount ~s/~s ~%" '?type '?amount)
+
+            (tcl-push-back-plan :plan 
+            	`( 
+                    (manipulationModule.gotoAnglesOR 'name picking-left)
+                    (detectRackSim)
+                    (SEQ2SEQ.tcb-wait-for-transportation-robot-docked)
+                 )
+            )
+
+		    (loop for i from 1 to ?amount do 
+	            (tcl-push-back-plan :plan 
+	            	`(
+						(mGotoPre 0 ?type)
+						(manipulationModule.close)
+						(gotoAnglesOR 'name drop-to-robot)
+						(manipulationModule.open)
+					 )
+	           	)
+	        )              
+		  )
+  )
+)
+
+
+
+(define-tcb (tcb-wait)
+  (action (
+     (sleep 5)
+  )))
+
+
+(define-rule (rule-end-job)
+  (tcb (tcb-trigger-return ?return))
+  (return-value (SUCCESS (JOB DONE)))
+  (action (
+            (format t "RULE: (SUCCESS (JOB DONE))~%")
+            (tcl-abort)
+            '(SUCCESS ()))))
+
+(define-event-handler (handler-transportation-robot-com)
+  (action (
+            (format t "=========================>>> HANDLER handler-transportation-robot-com: ~s ~%~%" (tcl-event-message))
+            (let ((msg (read-from-string (tcl-event-message))
+
+                 ))
+            
+              (if (typep msg 'list)
+                (cond
+                  ;; JobUpdate
+                  ((equal (first msg) 'UpdateJob)
+                    (format t "UpdateJob ~%")
+                    (cond
+                      ((equal (second msg) 'robotDocked)
+                        (format t "Transportation Robot Docked!!~%")
+                        (tcl-write-sync-variable :name 'transp-robot-docked :value nil)
+                        ;(tcl-write-sync-variable :name 'transp-robot-docked :value '(test))
+                      )
+
+                      ((equal (second msg) 'robotunDocked)
+                        (format t "Transportation Robot unDocked!!~%")
+                        (tcl-write-sync-variable :name 'transp-robot-undocked :value nil))
+                      (T
+                        (format t "ERROR IN COMMUNICATION!~%"))))
+                  (T
+                    (format t "ERROR IN COMMUNICATION Got message: ~a~%" (first (tcl-event-message)))))
+                 (format t "ERROR IN COMMUNICATION (no list) Got message: ~s~%" (tcl-event-message)))
+            
+            )
+
+            (format t "timo handler-transportation-robot-com finished !!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+          )
+  )
+)
+
+
+
+
+; (execute '(tcb-commission-one-station ((RATIOPHARM-ASS 2) (RATIOPHARM-IBU 2)) ))
+(define-tcb (tcb-commission-one-station ?station-order-List)
+  (rules ( ))
+  (action (
+            (format t "=========================>>> tcb-commission-one-station~%")
+
+            ;TODO: Better solution for environement ID managmenet, instead of deleting the objects
+            (tcl-kb-delete :key '(is-a) :value '((is-a object)))
+
+            (dolist (order-item '?station-order-List)
+              (format t "Timo order-item ~a ~%" order-item)
+              (tcl-push-back-plan :plan `(
+					(tcb-set-detection-counter 0)
+					;;wire sequencer and OpenRave to correct recognition-component 
+					(tcb-wire-for-article ,(first order-item))
+          ;(tcb-commission-number-of-objects ,(first order-item) ,(second order-item))
+          (tcb-commission-number-of-objects-timo ,(first order-item) ,(second order-item)) 
+
+     )))
+
+            ;(tcl-push-back-plan :plan `( (tcb-manipulator-pose standby) )) 
+)))
+
+
+
+; (execute '(tcb-commission-number-of-objects SPECIAL 2))
+(define-tcb (tcb-commission-number-of-objects-timo ?objType ?amount)
+  (rules ( rule-tcb-commission-one-object-failed
+           rule-tcb-no-ik-solution-found
+           rule-tcb-get-next-object-to-grasp-failed
+           rule-tcb-detect-when-necessary-failed
+         )) 
+  (action (
+            (format t "=========================>>> Timo tcb-commission-number-of-objects-timo~%")
+          
+            (tcl-push-plan :plan `( ;(tcb-manipulator-pose picking-left)
+                                    (manipulationModule.gotoAnglesOR 'name picking-left)
+                                    ;(tcb-detect-when-necessary ?objType => ?envId)
+                                    (detectRackSim)
+                                  ))
+
+	    (loop for i from 1 to ?amount do
+                   (format t "Timo i ~d ~%" i)   
+                   (tcl-push-back-plan :plan `(
+                                             ;(tcb-commission-one-object ?envId ?objType)
+                                             ;(mGotoPre ?envId ?objType)
+                                             (mGotoPre 0 ?objType)
+                                             ;necessary, since OpenRave is doing strange things when planning from drop to gripping
+					                                   ;(tcb-manipulator-pose picking-left)
+                                             (gotoAnglesOR 'name picking-left)
+					     )))  
+         )))
+           
+
+; (execute '(tcb-commission-number-of-objects SPECIAL 2))
+(define-tcb (tcb-commission-number-of-objects ?objType ?amount)
+  (rules ( rule-tcb-commission-one-object-failed
+           rule-tcb-no-ik-solution-found
+           rule-tcb-get-next-object-to-grasp-failed
+           rule-tcb-detect-when-necessary-failed
+         )) 
+  (action (
+            (format t "=========================>>> Timo tcb-commission-number-of-objects~%")
+          
+            (tcl-push-plan :plan `( ;(tcb-manipulator-pose picking-left)
+                                    (gotoAnglesORN picking-left)
+                                    (tcb-detect-when-necessary ?objType => ?envId)
+                                  ))
+
+	    (loop for i from 1 to ?amount do
+                   (format t "Timo i ~d ~%" i)   
+                   (tcl-push-back-plan :plan `(
+                                             (tcb-commission-one-object ?envId ?objType)
+                                             ;necessary, since OpenRave is doing strange things when planning from drop to gripping
+					                                   ;(tcb-manipulator-pose picking-left)
+                                             (gotoAnglesORN picking-left)
+					     )))  
+         )))
+
+
+
+(define-rule (rule-tcb-detect-when-necessary-failed)
+  (tcb ( tcb-detect-when-necessary ?objType => ?envId))
+  (return-value (ERROR (DETECTION FAILED)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (DETECTION FAILED)) ~%")
+            (tcl-delete-plan)
+            ;TODO Check what to do in this case (write in KB)
+            (format t "It seems that there are no pickable boxes left! ~%") 
+            '(SUCCESS ()))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Commissioning rules
+
+
+(define-rule (rule-tcb-commission-one-object-failed)
+  (tcb (tcb-commission-one-object ?envId ?objType))
+  (return-value (ERROR (GRASPING FAILED)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING OBJ. FAILED)) ~%")
+	    ;TODO test without delete plan
+            ;(tcl-delete-plan)
+                  (let* ((obj (tcl-kb-query :key '(is-a status) :value '((is-a object)(status TO_BE_GRASPED))))
+                         (obj-id (get-value obj 'id)))
+                    (cond
+                      ((not (null obj))
+                        (tcl-param :server 'openrave :slot 'OPENRAVE_RELEASEOBJ :value obj-id)
+                        (tcl-kb-update :key '(is-a id) 
+                          :value `(
+                                    (is-a OBJECT)
+                                    (id ,obj-id)
+                                    (status NOT_GRASPABLE)))))) 
+	    ; is not push back, because in the rule ?envId is already bound
+            ; so block is called by value, but environment id possibly changes until the end of the stack
+            (tcl-push-plan :plan `( (tcb-gripper open)
+				    (tcb-commission-one-object ?envId ?objType) ))
+   )))
+
+
+(define-rule (rule-tcb-no-ik-solution-found)
+  (tcb (tcb-commission-one-object ?envId ?objType))
+  (return-value (ERROR (NO IK SOLUTION FOUND)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING OBJ. FAILED - NO IK SOLUTION FOUND)) ~%")
+	    (tcl-delete-plan)
+
+                  (let* ((obj (tcl-kb-query :key '(is-a status) :value '((is-a object)(status TO_BE_GRASPED))))
+                         (obj-id (get-value obj 'id)))
+                    (cond
+                      ((not (null obj))
+                        (tcl-param :server 'openrave :slot 'OPENRAVE_RELEASEOBJ :value obj-id)
+                        (tcl-kb-update :key '(is-a id) 
+                          :value `(
+                                    (is-a OBJECT)
+                                    (id ,obj-id)
+                                    (status NOT_GRASPABLE)))))) 
+            ; is not push back, because in the rule ?envId is already bound
+            ; so block is called by value, but environment id possibly changes until the end of the stack
+            (tcl-push-plan :plan `( (tcb-commission-one-object ?envId ?objType) ))
+   )))
+
+
+(define-rule (rule-tcb-manipulator-tcp-collision)
+  (tcb (TCB-MANIPULATOR-POSE-TCP ?TCP-RELATIVE DIRECT))
+  (return-value (ERROR (COLLISION)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING OBJ. FAILED - COLLISION)) ~%")
+	    (tcl-delete-plan)
+	    ;TODO Robot should move closer to shelf
+	    ;'(ERROR (NO GRASPABLE OBJECTS)) 
+	    '(ERROR (GRASPING FAILED)) 
+   )))
+
+
+(define-rule (rule-tcb-manipulator-collision)
+  (tcb (TCB-MANIPULATOR-POSE ?POSE))
+  (return-value (ERROR (COLLISION)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING OBJ. FAILED - COLLISION)) ~%")
+	    (tcl-delete-plan)
+	    ;TODO Robot should move closer to shelf
+	    ;'(ERROR (NO GRASPABLE OBJECTS))
+	    '(ERROR (GRASPING FAILED)) 
+   )))
+
+         
+(define-rule (rule-tcb-get-next-object-to-grasp-failed)
+  (tcb (tcb-commission-one-object ?envId ?objType))
+  (return-value (ERROR (NO GRASPABLE OBJECTS)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (NO GRASPABLE OBJECTS LEFT)) ~%")
+            ; TODO Move robot before doing new detection, for getting different view
+            (tcl-push-plan :plan `( (tcb-commission-number-of-objects ?objType 1) ))  
+            '(SUCCESS))))
+
+
+(define-rule (rule-tcb-detect-boxes-too-often)
+  (tcb (tcb-detect-boxes ?rack-id ?shelfLevel => ?envId))
+  (return-value (ERROR (TOO MANY DETECTIONS)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (TOO MANY DETECTIONS)) ~%")
+            (tcl-delete-plan)
+            (format t "It seems that there are no pickable boxes left! ~%") 
+            '(ERROR (DETECTION FAILED)))))
+
+       
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (execute '(tcb-commission-one-object 1 FROSTIES))
+(define-tcb (tcb-commission-one-object ?envID ?objType)
+  (rules ( rule-tcb-commission-grasp-object-real-failed
+           rule-tcb-commission-grasp-object-real-collision-failed
+           rule-tcb-commission-grasp-object-real-no-ik
+           rule-tcb-commission-grasp-object-real-direct-failed
+           ;rule-tcb-commission-grasp-object-real-success-empty
+           ;rule-tcb-manipulator-pose-tcp-collision
+	   rule-tcb-manipulator-collision
+	   rule-tcb-manipulator-tcp-collision
+           rule-tcb-manipulator-pose-tcp-no-path))
+
+  (action (
+            (format t "=========================>>> tcb-commission-one-object:~%")
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) 
+                                                :value '((is-a object)(envid ?envID)(type ?objType)(status GRASPABLE))))
+                    (count-graspable (length obj-list)))
+            (cond
+                ((> count-graspable 0)
+		  (let ((obj (first (last obj-list))))
+
+                  (format t "obj: ~a~%" obj)
+                  (format t " id : ~s ~%"  (get-value obj 'id))
+                  (format t " type : ~s ~%"  (get-value obj 'type))
+
+		    (tcl-kb-update :key '(is-a id) 
+		                  :value `(
+		                            (is-a OBJECT)
+		                            (id ,(get-value obj 'id))
+		                            (status TO_BE_GRASPED)))
+
+                  (tcl-push-plan :plan `( ;(tcb-add-obj-into-openrave ,(get-value obj 'id) nil)
+                                          
+                                          ;(tcb-grasp-obj-in-openrave ,(get-value obj 'id))
+                                          ;;;(manipulationModule.grasp ,(get-value obj 'id))
+
+                                          ;(tcb-manipulator-pose drop-to-robot)
+                                          ;;;(gotoAnglesORN drop-to-robot)
+
+                                          ;(tcb-delete-grasped-obj-form-openrave)
+				                                  
+                                          ;(tcb-delete-obj-from-openrave ,(get-value obj 'id))
+                                          ;;;(manipulationModule.delete ,(get-value obj 'id))
+
+                                          ;(tcb-gripper open)
+                                          ;;;(manipulationModule.open)
+					))
+
+		 (let* ( 
+			(obj-class (tcl-kb-query :key '(is-a type ) 
+                                            	 :value `((is-a object-class)(type ,(get-value obj 'type)))))
+			(rack (tcl-kb-query :key '(is-a id ) 
+                                            :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+
+		  (format t "rack id: ~a~%" (get-value rack 'id))
+                  (format t " type: ~s ~%"  (get-value rack 'type))
+                  (format t " pre-grasp-pose: ~s ~%"  (get-value rack 'pre-grasp-pose))
+
+                 (cond 
+                  ((get-value rack 'pre-grasp-pose) 
+
+                    (setf pre-gripping-pose (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                                                          (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                                                          (first (get-value rack 'pre-grasp-pose)) (third (get-value rack 'pre-grasp-pose)) (second (get-value rack 'pre-grasp-pose)))
+                                                   `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) )))
+                    (format t "obj pose: ~s ~%" (get-value obj 'pose))
+                    (format t "pre gripping pose: ~s ~%" pre-gripping-pose)
+                    (cond 
+                      ;planned grasping:
+                      ( (string-equal (get-value rack 'planned-grasping) "true") 
+                        (tcl-push-plan :plan `(
+                                               ;;;(tcb-add-obj-into-openrave ,(get-value obj 'id) nil)
+                                               ;;;(tcb-grasp-object real ,(get-value obj 'id))
+                                               ;;;(tcb-manipulator-pose-tcp ,(get-value rack 'pull-out-pose) direct)
+                                               
+                                               )))	
+
+                      ;unplanned grasping:
+                      (T
+	                (tcl-push-plan :plan `(
+
+                                  ;;;(tcb-add-obj-into-openrave ,(get-value obj 'id) nil)
+                                  
+                                  ;(tcb-grasp-object real-direct ,(get-value obj 'id))
+                                  ;;;(gotoTCPURRelI ,(get-value obj 'id))
+
+                                  ;(tcb-manipulator-pose-tcp ,(get-value rack 'pull-out-pose) direct)
+                                  ;;;(manipulationModule.gotoTCPURRel ,(get-value rack 'pull-out-pose))    
+
+                                  ))))
+
+                    (tcl-push-plan :plan `(
+
+                      ;(tcb-manipulator-pose-tcp ,pre-gripping-pose)
+                      ;;;(manipulationModule.gotoTCPOR ,pre-gripping-pose)
+
+                      (SEQ2SEQ.tcb-wait-for-transportation-robot-docked)
+                      
+                      ;(tcb-delete-obj-from-openrave ,(get-value obj 'id))
+                      ;;;(manipulationModule.delete ,(get-value obj 'id))
+
+                    )))
+                  (T 
+		    (format t "no pre gripping pose defined~%")))
+
+                 (tcl-push-back-plan :plan `((tcb-set-object-state ,(get-value obj 'id) ,(get-value rack 'post-grasping-state))
+                                             (tcb-increment-successful-picks ,(get-value obj 'type)))))
+
+            '(SUCCESS ())))
+          (T 
+	    '(ERROR (NO GRASPABLE OBJECTS))))))))
+                 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Gripping rules
+
+
+(define-rule (rule-tcb-commission-grasp-object-real-failed)
+  (tcb (tcb-grasp-object real ?objectId))
+  (return-value (ERROR (GRASPING FAILED)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING FAILED SCENARIO)) ~%")
+            (tcl-delete-plan)
+            '(ERROR (GRASPING FAILED)))))
+
+(define-rule (rule-tcb-commission-grasp-object-real-direct-failed)
+  (tcb (tcb-grasp-object real-direct ?objectId))
+  (return-value (ERROR (GRASPING FAILED)))
+  (action (
+            (format t "=========================>>> RULE: tcb-grasp-object real-direct (ERROR (GRASPING FAILED SCENARIO)) ~%")
+            (tcl-delete-plan)
+            '(ERROR (GRASPING FAILED)))))
+
+(define-rule (rule-tcb-commission-grasp-object-real-collision-failed)
+  (tcb (tcb-grasp-object real ?objectId))
+  (return-value (ERROR (GRASPING COLLISION)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (GRASPING COLLISION SCENARIO)) ~%")
+            (tcl-delete-plan)
+            '(ERROR (GRASPING FAILED)))))
+
+;TODO!!!
+(define-rule (rule-tcb-commission-grasp-object-real-no-ik)
+  (tcb (tcb-grasp-object real ?objectId))
+  (return-value (ERROR (NO IK SOLUTION FOUND)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (NO IK SOLUTION SCENARIO)) ~%")
+                (tcl-delete-plan)
+                '(ERROR (NO IK SOLUTION FOUND)))))
+
+
+;; pose rules
+
+(define-rule (rule-tcb-manipulator-pose-tcp-collision)
+  (tcb (tcb-manipulator-pose-tcp ?tcp))
+  (return-value (ERROR (COLLISION)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (COLLISION)) ~%")
+            (tcl-delete-plan)
+            '(ERROR (GRASPING FAILED)))))
+
+(define-rule (rule-tcb-manipulator-pose-tcp-no-path)
+  (tcb (tcb-manipulator-pose-tcp ?tcp))
+  (return-value (ERROR (NO PATH)))
+  (action (
+            (format t "=========================>>> RULE: (ERROR (NO PATH)) ~%")
+            (tcl-delete-plan)
+            '(ERROR (GRASPING FAILED)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-tcb (tcb-detect-boxes ?rack-id ?shelfLevel => ?envId)
+  (action (
+           (format t "=========================>>> Timo: tcb-detect-boxes ~%")
+           (let* ((counter (tcl-kb-query :key '(is-a name) :value '((is-a counter) (name detections-counter)))) 
+                  (new-detections-count (+ (get-value counter 'count) 1))
+		  ;(new-detections-count  (get-value (first counter-list) 'count) )
+                  (rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ?rack-id))))
+		  (ptu-pan (first (nth ?shelfLevel (get-value rack 'obj-recog-ptu-poses))))
+		  (ptu-tilt (second (nth ?shelfLevel (get-value rack 'obj-recog-ptu-poses))))
+                 )
+
+            ;TODO: Better solution for environement ID managmenet, instead of deleting the objects
+            (tcl-kb-delete :key '(is-a) :value '((is-a object)))
+
+            (format t "Timo: Running Detection No.: ~s ~%" new-detections-count)
+
+            (tcl-kb-update 
+              :key '(is-a name) 
+              :value `((is-a counter) (name detections-counter) (count ,new-detections-count)))
+
+	    (cond
+                ((> new-detections-count 3)
+		  '(ERROR (TOO MANY DETECTIONS)))
+		(T
+                  (tcl-push-plan :plan `(  
+                      (tcb-clear-env-openrave) ;; Timo-TODO: Currently missing?
+          				  
+                      ;(tcb-manipulator-pose picking-left)
+                      (gotoAnglesORN picking-left)
+					          
+                      ;(tcb-ptu-pose absolute ,ptu-pan ,ptu-tilt)
+                      (ptuModule.moveptu absolute ,ptu-pan ,ptu-tilt)                      
+
+
+                      ;(tcb-object-recognition => ?envId ?objs) ;; object-recognition.lisp
+                      (boxDetectionModule.tcb-set-query-image)
+                      (boxDetectionModule.detectBoxes => ?envId ?objs)
+
+
+                      (parallel ( ;(tcb-store-objects-in-kb ?objs) ;; object-recognition.lisp
+                                
+                                  (boxDetectionModule.storeObjects-bd ?objs)
+
+                                  ;(tcb-ptu-pose standby) ;; ptu.lisp
+                                  ;(ptuModule.moveptu timodefault 0) ;; Timo-TODO: Problem??
+                                  ;(boxDetectionModule.boxDetectionMovePtu timodefault 0) ;; NOT WORKING??
+                                  (ptuModule.moveptu absolute 0 0)  
+
+                                  ;(tcb-load-env-into-openrave ?envId)
+                                  (manipulationModule.loadEnvInOpenRave ?envId) 
+
+                                )
+                      )
+                    )
+                  )
+                                
+                                          
+                  '(SUCCESS ())))))))
+
+
+
+
+(define-tcb (tcb-detect-when-necessary ?objType => ?envId)
+  (rules ( rule-tcb-detect-boxes-too-often)) 
+  (action ( 
+           (format t "=========================>>> tcb-detect-when-necessary ~%" )
+           (tcl-push-plan :plan `( (tcb-get-last-envid => ?envId)))
+
+	   (let* ( (obj-list (tcl-kb-query-all :key '(is-a) :value '((is-a object))))
+                   (count-objs (length obj-list))
+                   (last-env-id -1))
+             (cond
+                ((> count-objs 0)
+                  (dolist (obj obj-list)
+                    (format t "~%--------------------------------~%")
+                    (format t "id                      : ~s ~%" (get-value obj 'id))
+                    (format t "  envid                 : ~s ~%" (get-value obj 'envid))
+                    (format t "  status                : ~s ~%" (get-value obj 'status))
+                    (format t "  type                  : ~s ~%" (get-value obj 'type))
+
+                    (cond
+                      ((> (get-value obj 'envid) last-env-id )
+                        (setf last-env-id (get-value obj 'envid))
+                        (print last-env-id)))
+                  ))
+                (T 
+                  (setf last-env-id nil)
+                ))
+
+
+             (let* ((obj-list-graspable (tcl-kb-query-all :key '(is-a envid type status) 
+                                                          :value `((is-a object)(envid ,last-env-id)(type ?objType)(status GRASPABLE))))
+                    (count-graspable (length obj-list-graspable)))
+
+               (format t "last-env-id: ~s ~%" last-env-id)
+               (format t "count-graspable: ~s ~%" count-graspable)
+
+               ;check if last environment id is nil
+               (cond 
+                 ( (and last-env-id (> count-graspable 0))
+                     (tcl-bind-var :name '?envId :value last-env-id)
+                 )
+                 (T
+		   (let* ( 
+			  (obj-class (tcl-kb-query :key '(is-a type ) 
+		                                   :value '((is-a object-class)(type ?objType)))))
+	  		    
+			  (tcl-push-back-plan :plan `( 
+                     ;(tcb-obj-recog-set-obj-type ?objType)
+						         (boxDetectionModule.setObjType RATIOPHARM-IBU)
+
+                     ;(tcb-detect-boxes ,(get-value obj-class 'rack-id) ,(get-value obj-class 'shelf-level) => ?envId)
+                     
+                     (tcb-detect-boxes ,(get-value obj-class 'rack-id) ,(get-value obj-class 'shelf-level) => ?envId)
+
+
+						     
+
+						     )))
+                  )))))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Wiring object recognition component
+
+
+;; (execute '(tcb-wire-for-article FROSTIES))
+(define-tcb (tcb-wire-for-article ?objType)
+  (rules ( ))
+
+  (action (
+            (format t "=========================>>> tcb-wire-for-article:~%")
+
+	    (let* ((obj-class (tcl-kb-query :key '(is-a type ) 
+                   	                    :value '((is-a object-class)(type ?objType))))
+		   (rack (tcl-kb-query :key '(is-a id ) 
+                                       :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+
+                 (cond 
+                    ((get-value rack 'recognition-component) 
+   			
+		        (format t "recognition-component: ~s ~%" (get-value rack 'recognition-component))
+
+	                (tcl-push-plan :plan `( (tcb-objrec-wiring ,(get-value rack 'recognition-component) )))
+
+			'(SUCCESS ()))
+   		     (T 
+			'(ERROR (NO RECOGNITION COMPONET))
+		  ))))))
+
+
+;; (execute '(tcb-objrec-wiring "SmartRackDetection"))
+(define-tcb (tcb-objrec-wiring ?serverComp)
+  (action (
+            (format t "=========================>>> tcb-objrec-wiring objectRecog to ~s%" ?serverComp)
+          
+          ;;Timo-TODO: Is this required???
+            ;(tcl-param-set-slave-component-name :server 'objectrecognition :slaveComp '?serverComp) ; This function works only for param, not for state!
+
+	    ;(tcl-wiring-connect :clientComp "SmartLispServer" :wiringName "recognitionEventClient" 
+       ;                         :serverComp '?serverComp :serverService "objectEventServer")
+  	    ;(tcl-wiring-connect :clientComp "SmartLispServer" :wiringName "recognitionPropertyQueryClient" 
+         ;                       :serverComp '?serverComp :serverService "objectPropertyQueryServer")
+	    (tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" 
+                                :serverComp '?serverComp :serverService "environmentQueryServer")
+  	    (tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "ObjectQueryServiceReq" 
+                                :serverComp '?serverComp :serverService "objectPropertyQueryServer")
+
+	    ;(tcl-kb-delete :key '(is-a) :value '((is-a object)))
+            '(SUCCESS ()))))
+
+
+;; (execute '(tcb-camera-wiring "SmartRealSenseV2Server"))
+;; (execute '(tcb-camera-wiring "SmartKinectV2Server"))
+;; DOES NOT WORK!! Because wiring is not implemented for state..
+(define-tcb (tcb-camera-wiring ?compName)
+  (action (
+            (format t "=========================>>> tcb-camera-wiring camera to ~s~%" ?compName)
+
+            (tcl-param-set-slave-component-name :server 'kinect :slaveComp '?compName) 
+
+            '(SUCCESS ()))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; helpers
+
+
+(define-tcb (tcb-trigger-return ?return)
+  (action (
+            (format t "=========================>>> tcb-trigger-return ~s ~%" '?return)
+            '?return)))
+
+; (sort-order-list-by-location '((RATIOPHARM-ASS 2) (SPECIAL 1) (RATIOPHARM-IBU 3) (FROSTIES 2)) )
+; result: (((FROSTIES 2) (SPECIAL 1)) ((RATIOPHARM-IBU 3) (RATIOPHARM-ASS 3))) 
+(defun sort-order-list-by-location (orderList)
+            (format t "=========================>>> sort-order-list-by-location ~%")
+	    (let* (
+		  (rack-list (list))
+                  (sorted-order-list (list)))             
+	          (format t "--------> Matthias: orderList ~a ~%" orderList)
+	          (dolist (order-item orderList)
+                     (format t "--------> Matthias: order-item ~a ~%" order-item)
+                     (multiple-value-bind (item-type item-quantity)
+                        ;(values (make-symbol (cdr (assoc 'type order-item))) (cdr (assoc 'quantity order-item)))  
+                        ;(values (cdr (assoc 'type order-item)) (cdr (assoc 'quantity order-item)))
+                        (values (read-from-string (cdr (assoc 'type order-item))) (cdr (assoc 'quantity order-item)))    
+			
+                        (format t "--------> Matthias: order-item ~a ~%" order-item)
+                        (format t "--------> Matthias: item-type: ~a quantity: ~a ~%" item-type item-quantity)
+
+
+                        ;(let* ( (obj-class (tcl-kb-query :key '(is-a type ) :value `((is-a object-class)(type ,(first order-item))))) )
+                        (let* ( (obj-class (tcl-kb-query :key '(is-a type ) :value `((is-a object-class)(type ,item-type)))) )
+
+				(cond ;check whether rack-id is already in list
+			             ((not (position (get-value obj-class 'rack-id) rack-list))
+	  			        (push (get-value obj-class 'rack-id) rack-list)
+					(push (list) sorted-order-list)))
+			
+                                (push `(,item-type ,item-quantity) (nth (position (get-value obj-class 'rack-id) rack-list) sorted-order-list)))))
+				;(push order-item (nth (position (get-value obj-class 'rack-id) rack-list) sorted-order-list)))))
+	    
+		  (print rack-list)
+		  (print sorted-order-list)
+
+		  ;(tcl-bind-var :name '?sortedOrderList :value sorted-order-list)
+		  ;(print ?sortedOrderList)
+))
+
+; (get-last-envid )
+;returns last environment id or nil, when 
+(defun get-last-envid ()
+            (format t "=========================>>> get-last-envid~%")
+           
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a) :value '((is-a object))))
+                    (count-objs (length obj-list))
+                    (last-env-id -1))
+            (cond
+              ((> count-objs 0)
+                (dolist (obj obj-list)
+                  (format t "~%--------------------------------~%")
+                  (format t "id                      : ~s ~%" (get-value obj 'id))
+                  (format t "  envid                 : ~s ~%" (get-value obj 'envid))
+                  (format t "  status                : ~s ~%" (get-value obj 'status))
+                  (format t "  type                  : ~s ~%" (get-value obj 'type))
+
+                  (cond
+                    ((> (get-value obj 'envid) last-env-id )
+                      (setf last-env-id (get-value obj 'envid))))
+                      ;(tcl-bind-var :name '?env-id :value (get-value obj 'envid))))
+                )
+                
+                (print last-env-id))
+                ;'(SUCCESS ()))
+            (T 
+              (print nil)
+              ;(tcl-bind-var :name '?env-id :value nil)
+              ;'(ERROR (NO OBJECTS)))
+            ))
+      ))
+
+
+; (execute '(tcb-test-something 7))
+(define-tcb (tcb-test-something ?test1)
+  (action ( 
+           (format t "=========================>>> tcb-test-something ~s~%" '?test1)
+           (tcl-push-plan :plan `( (tcb-get-last-envid => ?foo)
+                                   (tcb-test-something2 ?foo)))
+           (format t "env in test ~s~%" '?foo))))
+
+(define-tcb (tcb-test-something2 ?test1)
+  (action ( 
+           (format t "=========================>>> tcb-test-something2 ~s~%" '?test1))))
+
+
+
+;returns last environment id or nil 
+(define-tcb (tcb-get-last-envid => ?envId)
+  (action ( 
+           (format t "=========================>>> tcb-get-last-envid~%")
+           
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a) :value '((is-a object))))
+                    (count-objs (length obj-list))
+                    (last-env-id -1))
+            (cond
+              ((> count-objs 0)
+                (dolist (obj obj-list)
+                  (format t "~%--------------------------------~%")
+                  (format t "id                      : ~s ~%" (get-value obj 'id))
+                  (format t "  envid                 : ~s ~%" (get-value obj 'envid))
+                  (format t "  status                : ~s ~%" (get-value obj 'status))
+                  (format t "  type                  : ~s ~%" (get-value obj 'type))
+
+                  (cond
+                    ((> (get-value obj 'envid) last-env-id )
+                      (setf last-env-id (get-value obj 'envid))
+                      (print last-env-id)
+                      (tcl-bind-var :name '?envId :value (get-value obj 'envid))))
+
+                 )
+              '(SUCCESS ()))      
+            (T 
+              (tcl-bind-var :name '?envId :value nil)
+            ))
+      ))))
+
+
+;; tcb-start-approach-test
+; (execute '(tcb-startup))
+
+(define-tcb (tcb-startup-openrave)
+  (action (
+            (format t "=========================>>> tcb-startup-openrave~%")
+            ;; setup scenario
+            (tcl-state :server 'openrave :state "Neutral")
+            (tcl-param :server 'openrave :slot 'COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.ENV_CLEAR)
+)))
+
+
+;(execute '(tcb-set-detection-counter 1))
+(define-tcb (tcb-set-detection-counter ?counter)
+  (action (
+            (format t "=========================>>> tcb-set-detection-counter~%")
+	    (tcl-kb-update :key '(is-a name) :value '((is-a counter)(name detections-counter)(count ?counter)))
+            '(SUCCESS ()))))
+
+
+; (execute '(tcb-set-object-state 7 GRASPED))
+(define-tcb (tcb-set-object-state ?objectId ?state)
+  (action (
+            (format t "=========================>>> tcb-set-object-state~%")
+
+            (tcl-kb-update :key '(is-a id) :value `( 
+                                                               (is-a object)
+                                                               (id ?objectId)
+                                                               (status ?state))))))
+
+
+; expects location to have same name like rack-id
+;(define-tcb (tcb-get-location-from-object-type ?objType => ?locationId)
+;  (rules ( )) 
+;  (action ( 
+;	     (format t "=========================>>> tcb-get-location-from-object-type ~s~%" '?objType)
+;	     (let* ((obj-class (tcl-kb-query :key '(is-a type ) :value '((is-a object-class)(type ?objType))))
+;  		    (rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+;		     ;(rack-location (tcl-kb-query :key '(is-a name ) 
+;                     ;                    	  :value `((is-a location)(name ,(get-value obj-class 'rack-id)))))
+;
+;  		    ; (format t "driving to rack location name: ~a~%" (get-value rack-location 'name))
+;  		    ; (format t "  coordinates region: ~a~%" (get-value rack-location 'approach-region-pose))
+;  		    ; (format t "  coordinates exact: ~a~%" (get-value rack-location 'approach-exact-pose))
+;
+;		     ;(tcl-push-plan :plan `( (tcb-approach-location ,(get-value obj-class 'rack-id)) ))
+;		     ;(tcl-push-plan :plan `( (tcb-approach-location ,(get-value rack 'location-id))))
+;
+;                     (tcl-bind-var :name '?locationId :value (get-value rack 'location-id))))))
+
+
+; expects location to have same name like rack-id
+;(execute '(tcb-get-location-from-object-type RATIOPHARM-IBU => ?locationId))
+;(execute '(tcb-get-location-from-object-type IBU => ?locationId))
+(define-tcb (tcb-get-location-from-object-type ?objType => ?locationId)
+  (rules ( )) 
+  (action ( 
+	     (format t "=========================>>> tcb-get-location-from-object-type ~s~%" '?objType)
+
+      (format t "=== locations-list ===~%")
+      (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+        (dolist (obj obj-list)
+          (format t "~%--------------------------------~%")
+          (format t "name                       : ~s ~%" (get-value obj 'name))
+          (format t "  type                     : ~s ~%" (get-value obj 'type))
+          (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+          (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+          (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+          (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+          (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+          (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+          (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+          (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+          (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+          (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+          (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count))))       
+
+      (format t "=== item-list ===~%")
+      (let ((item-list (tcl-kb-query-all :key '(is-a) :value '((is-a object-class)))))
+      (dolist (item item-list)
+          (format t "~%--------------------------------~%")
+          (format t "type        : ~a ~%" (get-value item 'type))
+          (format t "rack-id     : ~a ~%" (get-value item 'rack-id))
+          (format t "shelf-level : ~a ~%" (get-value item 'shelf-level))
+          (format t "slot        : ~a ~%" (get-value item 'slot))
+         ))
+
+      (format t "=== shelf-list ===~%")
+      (let ((shelf-list (tcl-kb-query-all :key '(is-a) :value '((is-a rack)))))
+      (dolist (shelf shelf-list)
+         (format t "~%--------------------------------~%")
+         (format t "id                    : ~a ~%" (get-value shelf 'id))
+         (format t "type                  : ~a ~%" (get-value shelf 'type))
+         (format t "pre-grasp-pose        : ~a ~%" (get-value shelf 'pre-grasp-pose))
+         (format t "pull-out-pose         : ~a ~%" (get-value shelf 'pull-out-pose))
+         (format t "obj-recog-ptu-poses   : ~a ~%" (get-value shelf 'obj-recog-ptu-poses))
+         (format t "planned-grasping      : ~a ~%" (get-value shelf 'planned-grasping))
+         (format t "location-id           : ~a ~%" (get-value shelf 'location-id))
+         (format t "recognition-component : ~a ~%" (get-value shelf 'recognition-component))
+         (format t "post-grasping-state   : ~a ~%" (get-value shelf 'post-grasping-state))
+         (format t "dimensions            : ~a ~%" (get-value shelf 'dimensions))
+         (format t "pick-distance         : ~a ~%" (get-value shelf 'pick-distance))
+         (format t "levels                : ~a ~%" (get-value shelf 'levels))
+         ))      
+
+
+
+
+	     (let* ((obj-class (tcl-kb-query :key '(is-a type ) :value '((is-a object-class)(type ?objType))))
+  		    (rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ,(get-value obj-class 'rack-id)))))
+		    (rack-location (tcl-kb-query :key '(is-a name ) 
+                                                 :value `((is-a location)(name ,(get-value rack 'location-id)))))
+                    (robot (tcl-kb-query :key '(is-a name ) 
+                                         :value `((is-a robot)(name 22)))))
+(print "=======>")
+(format t "rack id: ~a~%"  (get-value obj-class 'rack-id))
+(format t "rack id: ~a~%"  (get-value rack 'id))
+(format t "loc name: ~a~%"  (get-value rack 'location-id))
+(format t "loc name: ~a~%"  (get-value rack-location 'name))
+(format t "orientation: ~a~%"  (nth 1 (get-value rack-location 'orientation-region)))
+                    (setf rack-front-mid-point (transformPoseToPoint (nth 0 (get-value rack-location 'approach-region-pose)) 
+                                                          (nth 1 (get-value rack-location 'approach-region-pose)) 
+                                                          0
+                                                          (/ (* (nth 1 (get-value rack-location 'orientation-region)) pi) 180)
+                                                          0 
+                                                          0 
+                                                          (/ (nth 0 (get-value rack 'dimensions)) 2) 
+                                                          (nth 1 (get-value rack 'dimensions)) 
+                                                          0 ))
+
+                    ;todo: calc pick pose relative to rack-front-mid-point according to robot model pick-distance (in memory larry)
+(print "=======>")
+
+                    (format t "shelf dimensions: ~a ~a~%"  (nth 0 (get-value rack 'dimensions))  (nth 1 (get-value rack 'dimensions)) )
+                    (format t "shelf coordinates region: ~a ~a ~a~%" (nth 0 (get-value rack-location 'approach-region-pose)) (nth 1 (get-value rack-location 'approach-region-pose)) (nth 2 (get-value rack-location 'approach-region-pose)))
+                    (format t "shelf theta: ~a~%" (/ (* (nth 1 (get-value rack-location 'orientation-region)) pi) 180))
+
+                    (print "rack-front-mid-point:")
+                    (print rack-front-mid-point)
+
+
+                    (setf pick-location (transformPoseToPoint (nth 0 rack-front-mid-point) 
+                                                          (nth 1 rack-front-mid-point) 
+                                                          0
+                                                          (/ (* (nth 1 (get-value rack-location 'orientation-region)) pi) 180)
+                                                          0 
+                                                          0 
+                                                          0 
+                                                          (nth 1 (get-value robot 'pick-distance)) 
+                                                          0 ))
+
+                    (setf pick-location-name (intern (apply #'concatenate 'string (mapcar #'symbol-name `( ,(get-value rack 'id) -pick)))))
+
+
+
+
+                    (print "pick-location:")
+                    (print pick-location)
+
+                    (print "pick-location-name:")
+                    (print pick-location-name)
+
+;TODO Must be used!! Only commented for demo at THU naming celebration
+                    (tcl-kb-update 
+                            :key '(is-a name) 
+                            :value `( 
+                                     (is-a location)
+                                     (name ,pick-location-name)
+                                     (approach-type (region))
+                                     (approach-region-pose ,pick-location)
+                                     (approach-region-dist 75)
+                                     (orientation-region (angle-absolute ,(+ (nth 1 (get-value rack-location 'orientation-region)) (get-value robot 'pick-orientation))))))
+
+
+                     ;(tcl-bind-var :name '?locationId :value (get-value rack 'location-id))
+                     (tcl-bind-var :name '?locationId :value pick-location-name)))))
+
+
+
+
+; (execute '(tcb-increment-successful-picks FROSTIES))
+; (execute '(tcb-increment-successful-picks RATIOPHARM-IBU))
+(define-tcb (tcb-increment-successful-picks ?objType)
+  (rules ( )) 
+  (action ( 
+    (format t "=========================>>> tcb-increment-successful-picks ~s~%" '?objType)
+    (let ((robot (tcl-kb-query :key '(is-a) :value '((is-a robot)))))
+    (cond 
+      ((equal (not (get-value robot 'performs-task)) nil)
+        (let* ((job (tcl-kb-query :key '(is-a id ) :value `((is-a job)(id ,(get-value robot 'performs-task)))))
+                (picked-items (get-value job 'picked-items))
+                (counter 0)
+                (found nil))
+
+          (cond 
+            ((equal (not (get-value job 'picked-items)) nil)
+              (dolist (picked-item picked-items)
+                (cond
+                  ((equal (first picked-item) '?objType)
+                    ;increment count of piced item by 1
+                    (setf (nth 1 picked-item) (+ (nth 1 picked-item) 1))
+                    ;set incremented item to item list
+                    (setf (nth counter picked-items) picked-item)
+                    (setf found T)
+                    ;break loop
+                    (return)
+                ))
+                ;increment list index
+                (setf counter (+ counter 1))) 
+
+              ;if object type is not in list of picked items, it is added
+              (if (not found) 
+                (push '(?objType 1) picked-items)
+              )
+            )
+            (T
+              ;if job contains no attribute picked items create list of lists
+              (setf picked-items '((?objType 1)))
+            ))
+
+
+          ;;update the job
+          (tcl-kb-update :key '(is-a id) :value `(
+                                                  (is-a job) 
+                                                  (id ,(get-value robot 'performs-task)) 
+                                                  (picked-items ,picked-items)
+                                                 ))
+
+          (let* ( (new-job (tcl-kb-query :key '(is-a id ) :value `((is-a job)(id ,(get-value robot 'performs-task)))))
+                  (new-picked-items (get-value new-job 'picked-items)))
+
+           (print "new picked items list:")
+           (print new-picked-items))
+
+        '(SUCCESS ())  
+      ))
+      (T
+        (format t "THE ROBOT IS NOT PERFORMING ANY JOB --> DO NOTHING~%")
+      ))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; debug / tests
+
+
+;;NOT USED!!!!!
+(define-tcb (tcb-get-next-object-to-grasp ?envId => ?objectId)
+  (action (
+            (format t "=========================>>> tcb-get-next-object-to-grasp object:~a~%" ?envId)
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) 
+                                                :value '((is-a object)(envid ?envId)(type RATIOPHARM-IBU)(status GRASPABLE))))
+                    (count-graspable (length obj-list)))
+            (cond
+                ((> count-graspable 0)
+		  (let ((obj (first (last obj-list))))
+
+                  (dolist (obj obj-list)
+                    (format t "~%--------------------------------~%")
+                    (format t "id                      : ~s ~%" (get-value obj 'id))
+                    (format t "  envid                 : ~s ~%" (get-value obj 'envid))
+                    (format t "  status                : ~s ~%" (get-value obj 'status))
+                    (format t "  type                  : ~s ~%" (get-value obj 'type))
+                    (format t "  pose                  : ~s ~%" (get-value obj 'pose))
+                    (format t "  simple-grasping       : ~s ~%" (get-value obj 'simple-grasping)))
+
+                  (format t "obj: ~a~%" obj)
+                  (format t "id : ~s ~%"  (get-value obj 'id))
+                  (tcl-bind-var :name '?objectId :value (get-value obj 'id))
+                  '(SUCCESS ())))
+                (T 
+		   '(ERROR (NO GRASPABLE OBJECTS)))
+	     ))
+   )))
+
+
+

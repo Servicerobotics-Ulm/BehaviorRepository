@@ -1,0 +1,542 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCENARIO MEMORY
+ 
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name home)
+            (speech "home position")
+            (approach-type (region))
+            (approach-region-pose (0 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (0 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1000 0))
+            (orientation-exact (position 1000 0))
+            (backward-dist 500)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R1)
+            (speech "room-one")            
+            (line-segments ((-22000 8500 -19000 8500) 
+                                        (-19000 8500 -19000 5000) 
+                                                    (-19000 5000 -22000 5000) 
+                                                                (-22000 5000  -22000 8500)))))
+                                                                
+                                                                
+                                                                
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R2)
+            (speech "room-two")            
+            (line-segments ((-19000 8500 -17000 8500) 
+                                        (-17000 8500 -17000 5000) 
+                                                    (-17000 5000 -19000 5000) 
+                                                                (-19000 5000  -19000 8500)))))
+                                                                
+                                                                
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R3)
+            (speech "room-three")            
+            (line-segments ((-16500 8500 -14000 8500) 
+                                        (-14000 8500 -14000 5000) 
+                                                    (-14000 5000 -16500 5000) 
+                                                                (-16500 5000  -16500 8500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R4)
+            (speech "room-four")            
+            (line-segments ((-13500 8500 -11000 8500) 
+                                        (-11000 8500 -11000 4500) 
+                                                    (-11000 4500 -13500 4500) 
+                                                                (-13500 4500  -13500 8500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R5)
+            (speech "room-five")            
+            (line-segments ((-10500 8500 -8000 8500) 
+                                        (-8000 8500 -8000 4500) 
+                                                   (-8000 4500 -10500 4500) 
+                                                              (-10500 4500  -10500 8500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R6)
+            (speech "room-six")            
+            (line-segments ((-8000 8500 -5200 8500) 
+                                       (-5200 8500 -5200 4500) 
+                                                  (-5200 4500 -8000 4500) 
+                                                              (-8000 4500  -8000 8500)))))
+                                                              
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R7)
+            (speech "room-seven")            
+            (line-segments ((-4900 8500 -500 8500) 
+                                       (-500 8500 -500 4500) 
+                                                 (-500 4500 -4900 4500) 
+                                                           (-4900 4500  -4900 8500)))))
+                                                           
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R8a)
+            (speech "room-eight-a")            
+            (line-segments ((900 8500 1900 8500) 
+                                     (1900 8500 1700 5500) 
+                                               (1700 5500 900 5500) 
+                                                        ( 900 5500  900 8500)))))
+                                                        
+                                                        
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R8b)
+            (speech "room-eight-b")            
+            (line-segments ((2500 8500 3500 8500) 
+                                      (3500 8500 3500 5500) 
+                                                (3500 5500 2500 5500) 
+                                                         ( 2500 5500  2500 8500)))))
+                                                         
+                                                         
+                                                         
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R9)
+            (speech "room-nine")            
+            (line-segments ((4000 8500 6000 8500) 
+                                      (6000 8500 6000 5000) 
+                                                (6000 5000 4000 5000) 
+                                                         ( 4000 5000  4000 8500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R10)
+            (speech "room-ten")            
+            (line-segments ((7000 8500 10000 8500) 
+                                      (10000 8500 10000 5000) 
+                                                 (10000 5000 7000 5000) 
+                                                           ( 7000 5000  7000 8500)))))
+                                                           
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R11)
+            (speech "room-eleven")            
+            (line-segments ((12000 8500 14000 8500) 
+                                       (14000 8500 14000 5000) 
+                                                  (14000 5000 12000 5000) 
+                                                            ( 12000 5000  12000 8500)))))
+                                                            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R12)
+            (speech "room-twelve")            
+            (line-segments ((14000 8500 16000 8500) 
+                                       (16000 8500 16000 5000) 
+                                                  (16000 5000 14000 5000) 
+                                                            ( 14000 5000  14000 8500)))))
+                                                            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R13)
+            (speech "room-thirteen")            
+            (line-segments ((17000 8500 19000 8500) 
+                                       (19000 8500 19000 5000) 
+                                                  (19000 5000 17000 5000) 
+                                                            ( 17000 5000  17000 8500)))))
+                                                            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R14)
+            (speech "room-fourteen")            
+            (line-segments ((19500 8500 21000 8500) 
+                                       (21000 8500 21000 5000) 
+                                                  (21000 5000 19500 5000) 
+                                                            ( 19500 5000  19500 8500)))))
+                                                            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R15a)
+            (speech "room-fifteen-a")            
+            (line-segments ((20000 1700 22000 1700) 
+                                       (22000 1700 22000 -2000) 
+                                                  (22000 -2000 20000 -2000) 
+                                                             ( 20000 -2000  20000 1700)))))
+                                                             
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R15b)
+            (speech "room-fifteen-b")            
+            (line-segments ((17500 1700 20000 1700) 
+                                       (20000 1700 20000 -2000) 
+                                                  (20000 -2000 17500 -2000) 
+                                                             ( 17500 -2000  17500 1700)))))
+                                                             
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R15c)
+            (speech "room-fifteen-c")            
+            (line-segments ((14500 1700 16500 1700) 
+                                       (16500 1700 16500 -2000) 
+                                                  (16500 -2000 14500 -2000) 
+                                                             ( 14500 -2000  14500 1700)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R15d)
+            (speech "room-fifteen-d")            
+            (line-segments ((12000 1700 14000 1700) 
+                                       (14000 1700 14000 -2000) 
+                                                  (14000 -2000 14000 -2000) 
+                                                             ( 14000 -2000  14000 1700)))))
+                                                             
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R15e)
+            (speech "room-fifteen-e")            
+            (line-segments ((12000 -3000 22500 -3000) 
+                                        (22500 -3000 22500 -5000) 
+                                                    (22500 -5000 12000 -5000) 
+                                                                (12000 -5000  12000 -3000)))))
+                                                                
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R16a)
+            (speech "room-sixteen-a")            
+            (line-segments ((6000 1500 11000 1500) 
+                                      (11000 1500 11000 -2000) 
+                                                 (11000 -2000 6000 -2000) 
+                                                             (6000 -2000  6000 1500)))))
+                                                             
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R16b)
+            (speech "room-sixteen-b")            
+            (line-segments ((1000 1700 3000 1700) 
+                                      (3000 1700 3000 -2000) 
+                                                (3000 -2000 1000 -2000) 
+                                                           (1000 -2000  1000 1700)))))
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R16c)
+            (speech "room-sixteen-c")            
+            (line-segments ((500 -6000 3000 -6000) 
+                                      (3000 -6000 3000 -8500) 
+                                                 (3000 -8500 500 -8500) 
+                                                            (500 -8500  500 -6000)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R16d)
+            (speech "room-sixteen-d")            
+            (line-segments ((3000 -6500 8000 -6500) 
+                                       (8000 -6500 8000 -9000) 
+                                                 ( 8000 -9000 3000 -9000) 
+                                                             (3000 -9000  3000 -6500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R16e)
+            (speech "room-sixteen-e")            
+            (line-segments ((9000 -6000 11000 -6000) 
+                                       (11000 -6000 11000 -9000) 
+                                                  ( 11000 -9000 9000 -9000) 
+                                                               (9000 -9000  9000 -6000)))))
+                                                             
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R17)
+            (speech "room-seventeen")            
+            (line-segments ((-3100 1700 -300 1700) 
+                                       (-300 1700 -300 -5500) 
+                                                 (-300 -5500 -3100 -5500) 
+                                                            (-3100 -5500  -3100 1700)))))
+                                                        
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R18a)
+            (speech "room-eighteen-a")            
+            (line-segments ((-6000 1700 -3500 1700) 
+                                       (-3500 1700 -3500 -2000) 
+                                                  (-3500 -2000 -6000 -2000) 
+                                                              (-6000 -2000  -6000 1700)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R18b)
+            (speech "room-eighteen-b")            
+            (line-segments ((-16500 1700 -14000 1700) 
+                                        (-14000 2000 -14000 -2000) 
+                                                   ( -14000 -2000 -16500 -2000) 
+                                                                  (-16500 -2000  -16500 1700)))))
+                                                                  
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R18c)
+            (speech "room-eighteen-c")            
+            (line-segments ((-16500 -2500 -12500 -2500) 
+                                         (-12500 -2500 -12500 -5500) 
+                                                     ( -12500 -5500 -16500 -5500) 
+                                                                   (-16500 -5500  -16500 -2500)))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R18d)
+            (speech "room-eighteen-d")            
+            (line-segments ((-12000 -2500 -8000 -2500) 
+                                         (-8000 -2500 -8000 -5500) 
+                                                    ( -8000 -5500 -12000 -5500) 
+                                                                   (-12000 -5500  -12000 -2500)))))
+                                                                   
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R18e)
+            (speech "room-eighteen-e")            
+            (line-segments ((-7500 -2500 -3500 -2500) 
+                                        (-3500 -2500 -3500 -5500) 
+                                                    ( -3500 -5500 -7500 -5500) 
+                                                                   (-7500 -5500  -7500 -2500)))))
+                                                                   
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R19a)
+            (speech "room-nineteen-a")            
+            (line-segments ((-22000 1700 -19000 1700) 
+                                        (-19000 1700 -19000 -500) 
+                                                   ( -19000 -500 -22000 -500) 
+                                                                (-22000 -500  -22000 1700)))))
+                                                                
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name R19b)
+            (speech "room-nineteen-b")            
+            (line-segments ((-22000 500 -17000 500) 
+                                       (-17000 500 -17000 -5000) 
+                                                 ( -17000 -5000 -22000 -5000) 
+                                                               (-22000 -5000  -22000 500)))))
+                                                                
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name Corridor)
+            (speech "Corridor")            
+            (line-segments ((-20000 2750 -20000 3250) 
+                                        (-20000 3250 22000 3250) 
+                                                    (22000 3250 22000 2750) 
+                                                                (22000 2750 -20000 2750)))))
+                                                                
+                                                                
+                                                                
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name L1)
+            (speech "L-one")
+            (approach-region-pose (-500 3000 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-500 3000 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1500 3000))
+            (orientation-exact (position 1500 3000))))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name L2)
+            (speech "L-two")
+            (approach-region-pose (-18200 600 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-18200 600 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -16200 600))
+            (orientation-exact (position -16200 600))))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name L3)
+            (speech "L-three")
+            (approach-region-pose (-10500 -200 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-10500 -200 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position -9000 -200))
+            (orientation-exact (position -9000 -200))))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name L4)
+            (speech "L-four")
+            (approach-region-pose (4500 -400 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (4500 -400 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 7500 -400))
+            (orientation-exact (position 7500 -400))))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name L5)
+            (speech "L-five")
+            (approach-region-pose (9150 -4300 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (9150 -4300 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 11000 -4300))
+            (orientation-exact (position 11000 -4300))))
+                                                         
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+           
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name room-1)
+            (speech "room-one")            
+            (size (50000 20000))
+            (offset (-25000 -10000))))
+            
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
+      
+(defun show-rooms ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a room)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "         R O O M                  ~%")
+      (format t "~%--------------------------------~%")
+      (format t "name                              : ~s ~%" (get-value obj 'name))
+      (format t "line-segments                     : ~s ~%" (get-value obj 'line-segments))
+      (format t "line-segments                     : ~s ~%" (get-value obj 'speech)))))
+
+
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :key '(is-a) :value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+
+
+;; SCENARIO MEMORY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

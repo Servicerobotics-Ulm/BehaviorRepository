@@ -1,0 +1,7 @@
+(realize-tcb (goto ?pose)
+	(plan(
+       	(localizationModInst.tcb-activate-localization)
+		(navigation.approachLocation ?pose)
+		(localizationModInst.tcb-deactivate-localization))
+	)
+)

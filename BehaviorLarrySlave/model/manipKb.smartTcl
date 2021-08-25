@@ -1,0 +1,63 @@
+; (execute '(gotoAnglesORN standby))
+; (execute '(gotoAnglesORN drop-to-robot))
+; (execute '(gotoAnglesORN picking-left))
+; (execute '(gotoTCPORN tcp1))
+
+; (execute '(gotoAnglesURN standby))
+; (execute '(gotoAnglesURN drop-to-robot))
+; (execute '(gotoAnglesURN picking-left))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a manipulator-pose)
+            (name standby)
+            (gripper-before open)
+	      (angles (2.80739 -2.31591 2.59710 -1.44829 -1.60092 -0.19797))
+            (joint-time 2.0)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a manipulator-pose)
+            (name drop-to-robot)
+             ;big Wuerth box 
+             ;(angles ( 1.89206 -1.39836 0.833696 -0.979918 -1.60008 -0.020801))
+             ; for SLC packing:
+             ;(angles (2.0 -1.24994 0.431959 -0.731141 -1.59939 -0.0189382))
+             ;(angles (2.0 -1.24994 0.431959 -0.731141 -1.59939 -0.0189382))
+             (angles (1.4 -1.24994 0.431959 -0.731141 -1.59939 -0.0189382))
+            (joint-time 2.0)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a manipulator-pose)
+            (name picking-left)
+            (gripper-before nil)
+            (angles (4.63076 -2.14815 2.4906 -1.44829 -1.60092 -0.19797))
+            (joint-time 2.0)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a tcp)
+            (name tcp-one)
+            (pose (0.5 0.0 1.0 0.0 0.0 0.0))
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a tcp)
+            (name tcp-two)
+            (pose (2.0 0.0 1.0 0.0 0.0 0.0))
+          )
+)
+
+
+            
+            
+            
+            

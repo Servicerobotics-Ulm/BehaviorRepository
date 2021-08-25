@@ -1,0 +1,151 @@
+(realize-tcb (tcbSleep)
+	(action 
+		(
+			(sleep 0.5)
+		)
+	)
+)
+
+; ptu must be in state Move!
+; camera state Query timinig issue => sleep required!
+(realize-tcb (detectRackSim)
+	(action 
+		(
+			(format t "start detectRackSim")
+			(tcl-wiring-connect :clientComp "ComponentRackDetection" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera" :serverService "imageQueryServer")
+			(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentRackDetection" :serverService "environmentQueryServer")
+		)
+	)
+	
+	(plan (
+		(manipulationModule.clearOR)
+		(ptuModule.moveptu absolute 1.57 -0.55)
+		(rackDetectionModule.tcb-set-query-image)
+		(tcbSleep)
+		;(rackDetectionModule.tcb-set-obj-type R000032)
+		(rackDetectionModule.detectRack => ?envId ?objs)
+		(rackDetectionModule.storeObjects-rd ?objs)
+    	(manipulationModule.loadEnvInOpenRave ?envId)
+    	(ptuModule.moveptu absolute 0.0 0.0)
+    	(rackDetectionModule.setNeutral)
+    ))
+)
+
+(realize-tcb (detectRackReal)
+	(action 
+		(
+			(format t "start detectRackReal")
+			(tcl-wiring-connect :clientComp "ComponentRackDetection" :wiringName "kinectQueryClient" :serverComp "ComponentKinectV2Server" :serverService "imageQueryV2Server")
+			(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentRackDetection" :serverService "environmentQueryServer")
+		)
+	)
+	
+	(plan (
+		(manipulationModule.clearOR)
+		(ptuModule.moveptu absolute 1.57 -0.55)
+		(rackDetectionModule.tcb-set-query-image)
+		(tcbSleep)
+		;(rackDetectionModule.tcb-set-obj-type R000032)
+		(rackDetectionModule.detectRack => ?envId ?objs)
+		(rackDetectionModule.storeObjects-rd ?objs)
+    	(manipulationModule.loadEnvInOpenRave ?envId)
+    	(ptuModule.moveptu absolute 0.0 0.0)
+    	(rackDetectionModule.setNeutral)
+    ))
+)
+
+(realize-tcb (detectBoxesTest)
+	(action 
+		(
+			(format t "start detectBoxesTest")
+			(tcl-wiring-connect :clientComp "ComponentKinectBoxDetection" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera" :serverService "imageQueryServer")
+			(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentKinectBoxDetection" :serverService "environmentQueryServer")
+		)
+	)
+	
+	(plan (
+			(manipulationModule.clearOR)
+			(rackDetectionModule.tcb-set-query-image)
+			(tcbSleep)
+			(boxDetectionModule.setObjType RATIOPHARM-IBU)
+			(boxDetectionModule.detectBoxes => ?envId ?objs)
+			(boxDetectionModule.storeObjects-bd ?objs)
+			(manipulationModule.loadEnvInOpenRave ?envId)
+			(rackDetectionModule.setNeutral)
+	      )
+	)
+)
+
+; ptu must be in state Move!
+; camera state Query timinig issue => sleep required!
+
+;(tcl-wiring-connect :clientComp "ComponentRackDetection" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera" :serverService "imageQueryServer")
+;(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentRackDetection" :serverService "environmentQueryServer")
+
+(realize-tcb (detectBoxesSim)
+	(action 
+		(
+			(format t "start detectBoxesSim")
+			(tcl-wiring-connect :clientComp "ComponentKinectBoxDetection" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera" :serverService "imageQueryServer")
+			(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentKinectBoxDetection" :serverService "environmentQueryServer")
+		)
+	)
+	
+	(plan (
+			(manipulationModule.clearOR)
+		    (ptuModule.moveptu absolute 1.57 -0.65)
+			(rackDetectionModule.tcb-set-query-image)
+			(tcbSleep)
+			(boxDetectionModule.setObjType RATIOPHARM-IBU)
+			(boxDetectionModule.detectBoxes => ?envId ?objs)
+			(boxDetectionModule.storeObjects-bd ?objs)
+			(manipulationModule.loadEnvInOpenRave ?envId)
+			(ptuModule.moveptu absolute 0.0 0.0)
+			(rackDetectionModule.setNeutral)
+	      )
+	)
+)
+(realize-tcb (detectBoxesReal)
+	(action 
+		(
+			(format t "start detectBoxesReal")
+			(tcl-wiring-connect :clientComp "ComponentKinectBoxDetection" :wiringName "kinectQueryClient" :serverComp "ComponentKinectV2Server" :serverService "imageQueryV2Server")
+			(tcl-wiring-connect :clientComp "ComponentOpenRave" :wiringName "EnvironmentQueryServiceReq" :serverComp "ComponentKinectBoxDetection" :serverService "environmentQueryServer")
+		)
+	)
+	
+	(plan (
+			(manipulationModule.clearOR)
+		    (ptuModule.moveptu absolute 1.57 -0.65)
+			(rackDetectionModule.tcb-set-query-image)
+			(tcbSleep)
+			(boxDetectionModule.setObjType RATIOPHARM-IBU)
+			(boxDetectionModule.detectBoxes => ?envId ?objs)
+			(boxDetectionModule.storeObjects-bd ?objs)
+			(manipulationModule.loadEnvInOpenRave ?envId)
+			(ptuModule.moveptu absolute 0.0 0.0)
+			(rackDetectionModule.setNeutral)
+	      )
+	)
+)
+
+;(execute '(showObjects))
+(defun showObjects ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a object)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "id                      : ~s ~%" (get-value obj 'id))
+      (format t "  envid                 : ~s ~%" (get-value obj 'envid))
+      (format t "  status                : ~s ~%" (get-value obj 'status))
+      (format t "  stacked-into          : ~s ~%" (get-value obj 'stacked-into))
+      (format t "  capacity              : ~s ~%" (get-value obj 'capacity))
+      (format t "  contains              : ~s ~%" (get-value obj 'contains))
+      (format t "  type                  : ~s ~%" (get-value obj 'type))
+      (format t "  cleanup               : ~s ~%" (get-value obj 'cleanup))
+      (format t "  pose                  : ~s ~%" (get-value obj 'pose))
+      (format t "  fill-level            : ~s ~%" (get-value obj 'fill-level))
+      (format t "  simple-grasping       : ~s ~%" (get-value obj 'simple-grasping))
+      (format t "  current-grasp-offset  : ~s ~%" (get-value obj 'current-grasp-offset))
+      (format t "  stacking-offset       : ~s ~%" (get-value obj 'stacking-offset))
+      (format t "  stack-growing-offset  : ~s ~%" (get-value obj 'stack-growing-offset))
+      (format t "  speech                : ~s ~%" (get-value obj 'speech)))))
