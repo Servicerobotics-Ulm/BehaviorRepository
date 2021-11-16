@@ -13,7 +13,7 @@
             (is-a manipulator-pose)
             (name standby)
             (gripper-before open)
-	      (angles (2.80739 -2.31591 2.59710 -1.44829 -1.60092 -0.19797))
+	        (angles (2.80739 -2.31591 2.59710 -1.44829 -1.60092 -0.19797))
             (joint-time 2.0)))
 
 (tcl-kb-update 
@@ -37,6 +37,14 @@
             (angles (4.63076 -2.14815 2.4906 -1.44829 -1.60092 -0.19797))
             (joint-time 2.0)))
 
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a manipulator-pose)
+            (name picking-front)
+            (gripper-before nil)
+            (angles (2.80739 -2.31591 2.59710 -4.10152 -1.57 -0.19797))
+            (joint-time 2.0)))
 
 (tcl-kb-update
   :key '(is-a name)

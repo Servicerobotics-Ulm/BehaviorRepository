@@ -8,12 +8,9 @@
 (defun menu()
   (execute '(navigation.initNavigation))
   (execute '(navigation.loadNavigationMap "navigation-map"))
-  ;(execute '(localizationModInst.tcb-load-localization-map-only "localization-map.yaml"))
   (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
   
 (loop
-
-  (let ((known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
 
   (format t "~%MENU~%====~%~%")
   (format t " ---------------------------------------------------- ~%")
@@ -22,14 +19,13 @@
   (format t " ---------------------------------------------------- ~%")
   (format t " 5 - Approach location~%")
   (format t " ---------------------------------------------------- ~%")
-  ;(format t " 95 - Add new locations ~%")
   (format t " 96 - Show locations ~%")
-  ;(format t " 97 - Save locations to file ~%")
-  ;(format t " 98 - Load locations from file ~%")
   (format t "99 - quit menu ~%")
   (format t " 0 - exit ~%")
   (setf nmbr (parse-integer (read-line nil)))
   (format t "your choice: ~d ~%" nmbr)
+
+  (let ((known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
   
   (cond
     ((equal nmbr 3)
@@ -46,14 +42,8 @@
        (execute '(localizationModInst.tcb-activate-localization))
        (execute `(navigation.approachLocation,locations-var))
        (execute '(localizationModInst.tcb-deactivate-localization)))
-    ;((equal nmbr 95)
-     ;(add-locations))
     ((equal nmbr 96)
      (show-locations))
-    ;((equal nmbr 97)
-    ; (save-positions-from-kb-to-file))
-    ;((equal nmbr 98)
-    ; (load-positions-from-file-to-kb))
     ((equal nmbr 99)
       (format t "type (menu) to come back to menu ~%")
       (return))

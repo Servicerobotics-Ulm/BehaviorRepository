@@ -36,23 +36,28 @@
             (orientation-region (angle-absolute 0))
             (orientation-exact (angle-absolute 0))
             (backward-dist 500)))
-            
+
+;; Location to pick items from Inclined-Shelf
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
             (is-a location)
             (name rack1)
             (speech "rack location")
-            (approach-type (region))
-            (approach-region-pose (-1400 -1300 0))
+            ;(approach-type (region))
+            (approach-type (exact))
+            ;(approach-region-pose (-1400 -1300 0))
+            (approach-region-pose (-1000 -1300 0))
             (approach-region-dist 150)
-            (approach-exact-pose (-1400 -1300 0))
+            ;(approach-exact-pose (-1400 -1300 0))
+            (approach-exact-pose (-1000 -1300 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
             (orientation-region (angle-absolute 180))
             (orientation-exact (angle-absolute 180))
             (backward-dist 500)))
 
+;; Location to pick items from A-frame
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
@@ -60,13 +65,15 @@
             (name rack2)
             (speech "rack location")
             (approach-type (region))
-            (approach-region-pose (200 -1300 0))
+            (approach-region-pose (500 -1300 0))
             (approach-region-dist 150)
-            (approach-exact-pose (200 -1300 0))
+            (approach-exact-pose (500 -1300 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (angle-absolute 180))
-            (orientation-exact (angle-absolute 180))
+; thomas: 180->0
+            (orientation-region (angle-absolute 0))
+;            (orientation-region (angle-absolute 180))
+;            (orientation-exact (angle-absolute 180))
             (backward-dist 500)))
 
 ;; Location to where larry should navigate to drop the picked item
@@ -77,28 +84,32 @@
             (name drop-location)
             (speech "drop location")
             (approach-type (exact))
-            (approach-region-pose (-1040 1360 0))
+            (approach-region-pose (-900 1100 0))
             (approach-region-dist 150)
-            (approach-exact-pose (-1040 1360 0))
+            (approach-exact-pose (-1050 1350 0))
             (approach-exact-dist 50)
             (approach-exact-safetycl 0)
-            (orientation-region (angle-absolute 115))
-            (orientation-exact (angle-absolute 115))
+            (orientation-region (angle-absolute 124))
+            (orientation-exact (angle-absolute 124))
             (backward-dist 500)))
-            
 
+;; close to drop-location, but opposite heading
+(tcl-kb-update
+  :key '(is-a name)
+  :value '(
+            (is-a location)
+            (name drop-location-turned)
+            (speech "drop location turned")
+            (approach-type (region))
+            (approach-region-pose (-1050 1350 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-1050 1350 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (angle-absolute 304))
+            (orientation-exact (angle-absolute 304))
+            (backward-dist 500)))
 
-(tcl-kb-update 
-  :key '(is-a type) 
-  :value '( 
-            (is-a object-class)
-            (speech "ibu")
-            (type RATIOPHARM-IBU)
-        (rack-id inclined-shelf-1)
-        (shelf-level 0)
-            ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (0.0 0.0 0.0 0.0 -0.0 -0.0 0.0 0.0 0 0 0 0)))
-            ))
 
 (tcl-kb-update
   :key '(is-a type)
@@ -107,7 +118,10 @@
         (id AFRAME_0)
             (type a-frame)
             ;(pre-grasp-pose (-0.05 0.0 0.03 0 0 0))
-            (pre-grasp-pose (-0.015 -0.01 0.01 0 0 0))
+            ; forward up left
+            ; thomas: changed from (-0.015 -0.01 0.01...) to (-0.015 0.0 0.00 
+            (pre-grasp-pose (-0.015 0.0 0.0 0 0 0))
+            ;(pre-grasp-pose (-0.015 -0.01 0.01 0 0 0))
             (pull-out-pose (0 0 0.2 0 0 0))
             (planned-grasping "false")
         (location-id 2)
@@ -125,9 +139,9 @@
             (is-a rack)
         (id inclined-shelf-1)
             (type inclined-shelf)
-            (pre-grasp-pose (-0.1 0 0 0 0 0))
+            (pre-grasp-pose (-0.01 0 0 0 0 0))
             (pull-out-pose (-0.17 0 0 0 0 0))
-            (planned-grasping "true")
+            (planned-grasping "false")
             ;(planned-grasping "false")
         (location-id 1)
         ;(location-id inclined-shelf-1)
@@ -166,10 +180,11 @@
             (speech "smacks")
             (type SMACKS)
         (rack-id AFRAME_0)
-        (shelf-level 0)
+        ;(shelf-level 0)
             ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
-            (slot 1)))
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 1)
+))
 
 
 (tcl-kb-update 
@@ -179,10 +194,11 @@
             (speech "corn flakes")
             (type CORN-FLAKES)
         (rack-id AFRAME_0)
-        (shelf-level 1)
+        ;(shelf-level 1)
             ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
-            (slot 2)))
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 2)
+))
 
 (tcl-kb-update 
   :key '(is-a type) 
@@ -191,10 +207,11 @@
             (speech "frosties")
             (type FROSTIES)
         (rack-id AFRAME_0)
-        (shelf-level 0)
+        ;(shelf-level 0)
             ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
-            (slot 3)))
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 3)
+))
 
 
 (tcl-kb-update 
@@ -205,11 +222,12 @@
             (type SPECIAL)
         ;(rack-id a-frame-1)
             (rack-id AFRAME_0)
-        (shelf-level 1)
+        ;(shelf-level 1)
             ;(shelf-level 0)
             ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
-            (slot 4)))
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 4)
+))
 
 (tcl-kb-update 
   :key '(is-a type) 
@@ -218,7 +236,20 @@
             (speech "chocolate")
             (type CHOCO)
         (rack-id AFRAME_0)
+        ;(shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 5)
+))       
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "ibu")
+            (type RATIOPHARM-IBU)
+        (rack-id inclined-shelf-1)
         (shelf-level 0)
             ;height, depth, side, azimuth, elevation, roll
-            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
-            (slot 5)))                                   
+            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (0.0 0.0 0.0 0.0 -0.0 -0.0 0.0 0.0 0 0 0 0)))
+            ))                            

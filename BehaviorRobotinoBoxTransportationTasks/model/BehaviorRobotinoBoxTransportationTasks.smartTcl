@@ -83,7 +83,8 @@
 	))
 	(plan (
 
-		(MPS.tcb-mps-station-load-belts ?stationId)
+		(MPS.tcb-mps-station-load ?stationId)
+				
 	))
 )
 

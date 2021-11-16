@@ -51,29 +51,68 @@
   )
 )
 
-
+;(tcl-kb-query :key '(is-a type) :value '((is-a object-class)(type SPECIAL)))
 (define-tcb (processSingleStation ?stationOrder)
   (action (
             (format t "=========================>>> processSingleStation ~s ~%" '?stationOrder)
-            (dolist (item '?stationOrder)
-              (tcl-push-back-plan :plan 
-              	`(
-          			(processSingleObjectType ,(first item) ,(second item))
-     			 )
-              )
-            )
-		  )
+
+           	(let* (
+           		   (first-type (first(first '?stationOrder)))
+           		   (obj-class (tcl-kb-query :key '(is-a type) :value `((is-a object-class)(type ,first-type))))
+			       (rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ,(get-value obj-class 'rack-id)))))
+			      )
+
+           		  (format t "first stationOrder: ~s~%" (first(first '?stationOrder)))
+           		  (format t "first type: ~s~%" first-type)
+            	  (format t "obj-class of first stationOrder: ~s~%" obj-class)
+                  (format t "rack of obj-class of first stationOrder: ~s~%" rack)
+                  (format t "r-c of rack of obj-class of first stationOrder: ~s~%" (get-value rack 'recognition-component))
+
+			    (cond 
+		        	((string-equal (get-value rack 'recognition-component) "rack")
+		        		
+                (dolist (item '?stationOrder)
+                (tcl-push-back-plan :plan 
+		      				`(
+		  						(manipulationModule.gotoAnglesOR 'name picking-left)
+                  (detectRackSim)
+		  						(showObjects)
+                  (processSingleObjectType ,(first item) ,(second item))
+					 		 )
+		      			)
+                )
+		        	)
+		        	((string-equal (get-value rack 'recognition-component) "box")
+		        		(dolist (item '?stationOrder)
+                (tcl-push-back-plan :plan 
+		      				`(
+		  						(manipulationModule.gotoAnglesOR 'name picking-left)
+                  (detectBoxesSim)
+		  						(showObjects)
+                  (processSingleObjectType ,(first item) ,(second item))
+					 		 )
+		      			)
+                )
+		        	)
+		        	(T 
+		        		(format t "Wrong detection!~%")
+		        	)
+		        )
+	        )            
+			)
   )
 )
 
 (define-tcb (processSingleObjectType ?type ?amount)
+  (module "manipulationPlannerModule")
+  (rules (pickAndPlace_NoIk pickAndPlace_NoPath))
   (action (
             (format t "=========================>>> processSingleObjectType type/amount ~s/~s ~%" '?type '?amount)
 
             (tcl-push-back-plan :plan 
             	`( 
-                    (manipulationModule.gotoAnglesOR 'name picking-left)
-                    (detectRackSim)
+                    ;(manipulationModule.gotoAnglesOR 'name picking-left)
+                    ;(detectRackSim)
                     (SEQ2SEQ.tcb-wait-for-transportation-robot-docked)
                  )
             )
@@ -81,10 +120,14 @@
 		    (loop for i from 1 to ?amount do 
 	            (tcl-push-back-plan :plan 
 	            	`(
-						(mGotoPre 0 ?type)
-						(manipulationModule.close)
-						(gotoAnglesOR 'name drop-to-robot)
-						(manipulationModule.open)
+						;(mGotoPre 0 ?type)
+						(showObjects)
+            (manipulationModule.gotoAnglesOR 'name picking-left)
+						(pickAndPlace 0 ?type => ?graspedObjectId)	 
+						;(manipulationModule.close)
+						;(manipulationModule.gotoAnglesOR 'name drop-to-robot)
+						;(manipulationModule.open)
+						;(manipulationModule.release ?graspedObjectId)
 					 )
 	           	)
 	        )              
@@ -735,6 +778,8 @@
 	    
 		  (print rack-list)
 		  (print sorted-order-list)
+		  (format t "timo reversed sorted-order-list~%")
+		  (print (reverse sorted-order-list))
 
 		  ;(tcl-bind-var :name '?sortedOrderList :value sorted-order-list)
 		  ;(print ?sortedOrderList)

@@ -127,6 +127,7 @@
 
 
 (define-tcb (tcb-wait-for-transportation-robot-docked)
+	(module "Seq2SeqModule")
   
   
   (action (

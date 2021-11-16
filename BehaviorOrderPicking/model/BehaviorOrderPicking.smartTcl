@@ -42,86 +42,100 @@
 
 ;(execute '(manipulationMdoule.open))
 ;(execute '(manipulationModule.close))
-(realize-tcb (orderPicking2Sim)
+
+
+(realize-tcb (orderPickingRackSim ?type)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
 	(action 
 		(
-			(format t "orderPicking2Sim")
+			(format t "orderPickingRackSim ~s ~%" '?type)
 		)
 	)
 	
 	(plan (
 		(goto rack2)
+		(manipulationModule.gotoAnglesOR 'name picking-front)
 		(detectRackSim)
-		(mGotoPre 0 CHOCO)
-		(manipulationModule.close)		 
-		;;;(gotoAnglesOR 'name drop-to-robot)
-		(gotoAnglesOR 'name hold-and-travel)
+		(showObjects)
+		(pickAndPlace 0 ?type => ?graspedObjectId)	 
 		(goto drop-location) 
-	    (gotoAnglesOR 'name drop-to-station)
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
 		(manipulationModule.open)
-		(gotoAnglesOR 'name standby)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto drop-location-turned)
 		(goto home)
     ))
 )
 
-(realize-tcb (orderPicking1Sim)
+(realize-tcb (orderPickingBoxesSim)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
 	(action 
 		(
-			(format t "orderPicking1Sim")
+			(format t "orderPickingBoxesSim ~s ~%" '?type)
 		)
 	)
 	
 	(plan (
 		(goto rack1)
+		(manipulationModule.gotoAnglesOR 'name picking-left)		
 		(detectBoxesSim)
-		(mGotoPre 0 RATIOPHARM-IBU)
-		(manipulationModule.close)
-		;;(gotoAnglesOR 'name drop-to-robot)
-		(gotoAnglesOR 'name hold-and-travel)
+		(showObjects)
+		(pickAndPlace 0 RATIOPHARM-IBU => ?graspedObjectId)	 
 		(goto drop-location) 
-	    (gotoAnglesOR 'name drop-to-station)		
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
 		(manipulationModule.open)
-		(gotoAnglesOR 'name standby)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto drop-location-turned)
 		(goto home)
     ))
 )
 
-(realize-tcb (orderPicking2Real)
+(realize-tcb (orderPickingRackReal ?type)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
 	(action 
 		(
-			(format t "orderPicking2Real")
+			(format t "orderPickingRackReal ~s ~%" '?type)
 		)
 	)
 	
 	(plan (
 		(goto rack2)
 		(detectRackReal)
-		(mGotoPre 0 CHOCO)
-		(manipulationModule.close)
-		(gotoAnglesOR 'name drop-to-robot)
-		(goto home)
+		(showObjects)
+		(pickAndPlace 0 ?type => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
 		(manipulationModule.open)
-		(gotoAnglesOR 'name standby)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
     ))
 )
 
-(realize-tcb (orderPicking1Real)
+(realize-tcb (orderPickingBoxesReal)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
 	(action 
 		(
-			(format t "orderPicking1Real")
+			(format t "orderPickingBoxesReal")
 		)
 	)
 	
 	(plan (
 		(goto rack1)
 		(detectBoxesReal)
-		(mGotoPre 0 RATIOPHARM-IBU)
-		(manipulationModule.close)
-		(gotoAnglesOR 'name drop-to-robot)
-		(goto home)
+		(showObjects)
+		(pickAndPlace 0 RATIOPHARM-IBU => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
 		(manipulationModule.open)
-		(gotoAnglesOR 'name standby)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
     ))
 )
+
+
 
 
