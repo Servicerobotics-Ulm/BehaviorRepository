@@ -1,0 +1,28 @@
+(format t "Timo startUp ~%")
+(load-coordination-interface "FleetManagerCoordinationService" "/tmp/SystemWebotsRobotinoSlavePathNav_1.deployment/ComponentTCLSequencer_1_data")
+
+(read-coordination-module-system-file (format nil "~a/connections-ci-interface-test.json" "/tmp/SystemWebotsRobotinoSlavePathNav_1.deployment/ComponentTCLSequencer_1_data"))
+
+(instantiate-coordination-module "FleetManager" 'FleetManager)
+
+;(execute '(tcbStartup))
+
+(execute '(FleetManager.addRobotToFleetRequest))
+(execute '(FleetManager.addRobotToFleet))
+
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a location)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a station)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a rack)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a object-class)))
+
+;(execute '(gotoAnglesORN standby))
+;(execute '(ptuModule.ptuModule-moveptu default 0))
+
+(execute '(localizationModInst.localizationSetRobotPose 1350 1148 0))
+
+(execute '(navPathClient.acquireInitialSymbolicLocation))
+
+(execute '(tcb-update-robot-state 'IDLE))
+(execute '(FleetManager.waitForCommands))
+
+(format t "Timo startUp DONE!! ~%")

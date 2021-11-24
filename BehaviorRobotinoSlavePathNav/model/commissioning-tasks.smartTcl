@@ -1,0 +1,352 @@
+
+;PushJob RobotCommissioning JOBID PRIORITY ROBOTINOID COMMISSIONINGROBOT FROMSTATION FROMBELT TOSTATION TOBELT [ORDER_ITEM QUANTITY]+
+
+;; PushJob RobotCommissioning 1 0 6 88 1 1 3 1  FROSTIES 1 SPECIAL 1 RATIOPHARM-IBU 1 RATIOPHARM-ASS 1
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; transportation part of commissioning task
+
+; (execute '(tcb-perform-commissioning-job-transportation 1))
+
+(define-tcb (tcb-perform-commissioning-job-transportation ?jobid)
+  (module "Seq2SeqModule")
+  (rules (rule-abort-job-error-ack))
+  (sync-variables (robot-dock-pose station-done job-update))
+  (action (
+    (format t "=========================>>> tcb-perform-commissioning-job-transportation  id: ~a ~%" ?jobid)
+    (tcl-activate-event :name 'evt-commissioning-robot-com
+                                :handler 'handler-manipulation-robot-com
+                                :server 'cs_seq2seq
+                                :service 'taskEvent
+                                :mode 'continuous)
+    (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid)))))
+      (format t "Job id:~s order:~a ~%" (get-value job 'id) (get-value job 'commission-order))
+
+      (tcl-push-back-plan :plan `(
+                                   (tcb-connect-to-commissioning-robot ?jobid) ;; this should/could be done by the fleet manager
+                                   (tcb-update-running-job-state 'DRIVING)
+                                   (tcb-fetch-from-mps-station ,(get-value job 'start-station) ,(get-value job 'start-belt))
+                                   (tcb-wait-for-manipulation-robot-job-update ?jobid) ;; this one will push either a new station or complete the order
+                                   (tcb-deliver-to-mps-station ,(get-value job 'end-station) ,(get-value job 'end-belt))
+                                 )
+      ))
+   	)
+  )
+)
+
+#|
+(define-event-handler (handler-manipulation-robot-com)
+  (action (
+            (format t "=========================>>> HANDLER handler-manipulation-robot-com: ~s ~%~%" (tcl-event-message))
+            ;(let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+            ;      (robot (tcl-kb-query :key '(is-a) :value '((is-a robot))))))
+            (if (typep (tcl-event-message) 'list)
+              (cond
+                ;; JobUpdate
+                ((equal (first (tcl-event-message)) 'UpdateJob)
+                  (format t "UpdateJob ~%")
+                  (cond
+                    ((equal (second (tcl-event-message)) 'DOCKINGPOSE)
+                      (let* ((robot-send-pose (third (tcl-event-message))))
+                             (tcl-write-sync-variable :name 'robot-dock-pose :value robot-send-pose)))
+
+                    ((equal (second (tcl-event-message)) 'stationdone)
+                      (format t "Manipulation Robot Station Done:~%")
+                      (tcl-write-sync-variable :name 'station-done :value nil))
+
+                    ((equal (second (tcl-event-message)) 'nextStation)
+                      (format t "Manipulation Robot Next Station~%")
+                      (tcl-write-sync-variable :name 'job-update :value 'next-station))
+
+                    ((equal (second (tcl-event-message)) 'jobdone)
+                      (format t "Manipulation Robot Job Done!~%")
+                      (tcl-write-sync-variable :name 'job-update :value 'order-complete) ; the handler will not be called!
+                      (tcl-delete-event :name 'evt-commissioning-robot-com)) ;; this will abort the tcb!
+                      
+                    (T
+                      (format t "ERROR IN COMMUNICATION (UpdateJob ...)!~%"))))
+
+                (T
+                  (format t "ERROR IN COMMUNICATION Got message: ~a~%" (first (tcl-event-message)))))
+               (format t "ERROR IN COMMUNICATION (no list) Got message: ~s~%" (tcl-event-message))))))
+|#
+
+(define-event-handler (handler-manipulation-robot-com)
+  (action (
+            (format t "=========================>>> HANDLER handler-manipulation-robot-com: ~s ~%~%" (tcl-event-message))
+            ;(let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+            ;      (robot (tcl-kb-query :key '(is-a) :value '((is-a robot))))))
+            (let ((msg (read-from-string (tcl-event-message))))
+            (format t "=========================>>> timo msg: ~s ~%~%" msg)
+            (if (typep msg 'list)
+              (cond
+                ;; JobUpdate
+                ((equal (first msg) 'UpdateJob)
+                  (format t "UpdateJob ~%")
+                  (cond
+                    ((equal (second msg) 'DOCKINGPOSE)
+                      (let* ((robot-send-pose (third msg)))
+                             (tcl-write-sync-variable :name 'robot-dock-pose :value robot-send-pose)))
+
+                    ((equal (second msg) 'stationdone)
+                      (format t "Manipulation Robot Station Done:~%")
+                      (tcl-write-sync-variable :name 'station-done :value nil))
+
+                    ((equal (second msg) 'nextStation)
+                      (format t "Manipulation Robot Next Station~%")
+                      (tcl-write-sync-variable :name 'job-update :value 'next-station))
+
+                    ((equal (second msg) 'jobdone)
+                      (format t "Manipulation Robot Job Done!~%")
+                      (tcl-write-sync-variable :name 'job-update :value 'order-complete) ; the handler will not be called!
+                      (tcl-delete-event :name 'evt-commissioning-robot-com)) ;; this will abort the tcb!
+                      
+                    (T
+                      (format t "ERROR IN COMMUNICATION (UpdateJob ...)!~%"))))
+
+                (T
+                  (format t "ERROR IN COMMUNICATION Got message: ~a~%" (first msg))))
+               (format t "ERROR IN COMMUNICATION (no list) Got message: ~s~%" msg))
+               
+               ))))
+
+
+(define-tcb (tcb-perform-commissioning-one-station ?jobid)
+  (module "Seq2SeqModule")
+  (action (
+    (format t "=========================>>> tcb-perform-commissioning-one-station  id: ~a ~%" ?jobid)
+    (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid)))))
+      (tcl-push-back-plan :plan `(
+        (tcb-wait-for-manipulation-robot-pose => ?location)
+        ;Timo
+        ;(NAV.tcb-approach-location ?location)
+        ;(NAV.approachLocation ?location)
+        (NAVIGATION.approachLocation ?location)
+        (robotDocking.dockToRobot)
+        (SEQ2SEQ.tcb-send-transportion-robot-docked)
+        (tcb-wait-for-manipulation-robot-station-done)
+        (tcb-reset-sync-vars)
+        (robotDocking.undockFromRobot)
+        (SEQ2SEQ.tcb-send-transportion-robot-undocked)
+       )
+     )
+    )
+)))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-reset-sync-vars
+
+(define-tcb (tcb-reset-sync-vars)
+  (action (
+            (format t "=========================>>> tcb-reset-sync-vars ~%")
+            (tcl-reset-sync-variable :name 'robot-dock-pose)
+            (tcl-reset-sync-variable :name 'station-done)
+            (tcl-reset-sync-variable :name 'job-update)
+            '(SUCCESS (OK)))))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-wait-for-manipulation-robot-job-update
+
+(define-tcb (tcb-wait-for-manipulation-robot-job-update  ?jobid)
+  (action (
+            (format t "=========================>>> tcb-wait-for-manipulation-robot-job-update ~%")
+            (tcl-wait-for-sync-variable :event-name 'wait-for-next-station-event :variable-name 'job-update 
+                                        :handler 'handler-wait-for-job-update))))
+
+(define-sync-handler (handler-wait-for-job-update)
+  (action (
+            (format t "SYNC HANDLER handler-wait-for-job-update ~%")
+            (let ((job-update-value (tcl-read-sync-variable :name 'job-update)))
+              (format t "Sync job-update: ~a~%" job-update-value)
+              (cond
+                ((equal job-update-value 'next-station)
+                  (format t "Next Station!~%")
+                  (tcl-push-plan :plan `(
+                    (tcb-perform-commissioning-one-station ?jobid)
+		    ;;Timo (one station assumption)
+		    (tcb-wait-for-manipulation-robot-job-update ?jobid)
+		    ))) ;;TODO THIS WILL BE A CHALLANGE!!
+
+                ((equal job-update-value 'order-complete)
+                      (format t "Order Complete!~%")))))))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-wait-for-manipulation-robot-pose
+
+(define-tcb (tcb-wait-for-manipulation-robot-pose => ?location)
+  (action (
+            (format t "=========================>>> tcb-wait-for-manipulation-robot-pose ~%")
+            (tcl-wait-for-sync-variable :event-name 'wait-for-robot-dock-pose-event :variable-name 'robot-dock-pose :handler 'handler-wait-for-robot-dock-pose))))
+
+
+#|
+(define-sync-handler (handler-wait-for-robot-dock-pose)
+  (action (
+            (format t "SYNC HANDLER handler-wait-for-robot-dock-pose ~%")
+            (format t "Sync robot-dock-pose: ~a~%" (tcl-read-sync-variable :name 'robot-dock-pose))
+            (let* ((robot-send-pose (tcl-read-sync-variable :name 'robot-dock-pose))
+                   (manipulation-robot-pose `(,(first robot-send-pose) ,(second robot-send-pose) 0.0 ,(third robot-send-pose) 0.0 0.0))
+                   (target-offset `(0.0 0.0 0.0 ,(* (/ pi 2)) 0.0 0.0 ))
+                   (target-offset2 `(-800 -500 0.0 0.0 0.0 0.0))
+                   (target-pose nil))
+                      (format t "Manipulation Robot Pose: ~s~%" manipulation-robot-pose)
+                      (format t "Offset Pose: ~s~%" target-offset)
+                      (setf target-pose (composePoses3D  manipulation-robot-pose target-offset))
+                      (setf target-pose (composePoses3D  target-pose target-offset2))
+                      (format t "target pose: ~s~%" target-pose)
+                      (tcl-bind-var :name '?location :value 255)
+			 (tcl-kb-update 
+			  :key '(is-a name) 
+			  :value `( 
+				    (is-a location)
+				    (type pose)
+				    (name 255)
+				    (speech "manip robot location")
+				    (approach-type (path-nav))
+				    (approach-region-pose ,target-pose)
+				    (approach-region-dist 75)
+				    (approach-exact-pose ,target-pose)
+				    (approach-exact-dist 100)
+				    (approach-exact-safetycl 0)
+				    (orientation-region (angle-absolute ,(/ (* 180 (sixth target-pose)) pi)))
+				    (orientation-exact (angle-absolute ,(/ (* 180 (sixth target-pose)) pi)))))))))
+|#
+				    
+(define-sync-handler (handler-wait-for-robot-dock-pose)
+  (action (
+            (format t "SYNC HANDLER handler-wait-for-robot-dock-pose ~%")
+            (format t "Sync robot-dock-pose: ~a~%" (tcl-read-sync-variable :name 'robot-dock-pose))
+            (let* (
+            	(target-pose (tcl-read-sync-variable :name 'robot-dock-pose))
+            	;(target-pose '(-1000.0 0 0 0 0 0))
+            	)
+
+                      (format t "target pose: ~s~%" target-pose)
+                      (tcl-bind-var :name '?location :value 255)
+			 (tcl-kb-update 
+			  :key '(is-a name) 
+			  :value `( 
+				    (is-a location)
+				    (type pose)
+				    (name 255)
+				    (speech "manip robot location")
+				    (approach-type (path-nav))
+				    (approach-region-pose ,target-pose)
+				    (approach-region-dist 75)
+				    (approach-exact-pose ,target-pose)
+				    (approach-exact-dist 100)
+				    (approach-exact-safetycl 0)
+				    (orientation-region (angle-absolute ,(/ (* 180 (fourth target-pose)) pi)))
+				    (orientation-exact (angle-absolute ,(/ (* 180 (fourth target-pose)) pi)))))))))				    
+				    
+
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-wait-for-manipulation-robot-station-done
+
+(define-tcb (tcb-wait-for-manipulation-robot-station-done)
+  (action (
+            (format t "=========================>>> tcb-wait-for-manipulation-robot-station-done ~%")
+            (tcl-wait-for-sync-variable :event-name 'wait-for-robot-station-done-event :variable-name 'station-done :handler 'handler-wait-for-station-done))))
+
+(define-sync-handler (handler-wait-for-station-done)
+  (action (
+            (format t "SYNC HANDLER handler-wait-for-station-done ~%"))))
+
+;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; tcb-send-transportion-*
+
+(define-tcb  (tcb-send-transportion-robot-docked)
+(module "Seq2SeqModule")
+  (action (
+            (format t "=========================>>> tcb-send-transportion-robot-docked ~%")
+            (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob robotDocked)")))))
+
+
+(define-tcb  (tcb-send-transportion-robot-undocked)
+ (module "Seq2SeqModule")
+ (action (
+            (format t "=========================>>> tcb-send-transportion-robot-undocked ~%")
+            (tcl-param :server 'cs_seq2seq :slot 'CommBasicObjects.Seq2SeqComParam.SEND :value (format nil "(UpdateJob robotunDocked)")))))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+;; (execute '(SEQ2SEQ.tcb-send-transportion-robot-docked))
+;; (execute '(SEQ2SEQ.tcb-send-transportion-robot-undocked))
+;   (tcl-wiring-connect :clientComp "1.ComponentSeq2SeqCom" :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom" :serverService "TaskSendIn")
+   
+;   (tcl-wiring-connect :clientComp "ComponentSeq2SeqCom"  :wiringName "TaskSendOut" :serverComp "1.ComponentSeq2SeqCom" :serverService "TaskSendIn")
+   
+   
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CONNET AND DISCONNECT
+
+(define-tcb (tcb-connect-to-commissioning-robot ?jobid)
+  (action (
+            (format t "=========================>>> tcb-connect-and-send-task-to-commissioning-robot ~%")
+            (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+                  (robot (tcl-kb-query :key '(is-a) :value '((is-a robot)))))
+                  
+            ;(format t "Connect ~a.ComponentSeq2SeqCom to ~a.ComponentSeq2SeqCom ~%" 
+            ;	(get-value robot 'name)
+            ;	(get-value job 'commissioning-robot)
+            ;)
+            
+            ;(format t "Connect ~a.ComponentSeq2SeqCom to ~a.ComponentSeq2SeqCom ~%" 
+            ;	(get-value job 'commissioning-robot) 				
+            ;	(get-value robot 'name)          
+            ;)
+            
+     (tcl-wiring-connect :clientComp "ComponentSeq2SeqCom_1" :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom_2" :serverService "TaskSendIn")
+            
+   	 (tcl-wiring-connect :clientComp "ComponentSeq2SeqCom_2" :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom_1" :serverService "TaskSendIn")            
+                    
+     ;(tcl-wiring-connect :clientComp (format nil "~a.ComponentSeq2SeqCom" (get-value robot 'name)) :wiringName "TaskSendOut" :serverComp (format nil "~a.ComponentSeq2SeqCom" (get-value job 'commissioning-robot)) :serverService "TaskSendIn")
+            
+     ;(tcl-wiring-connect :clientComp (format nil "~a.ComponentSeq2SeqCom" (get-value job 'commissioning-robot)) :wiringName "TaskSendOut" :serverComp (format nil "~a.ComponentSeq2SeqCom" (get-value robot 'name)) :serverService "TaskSendIn")
+            
+))))
+
+
+(define-tcb (tcb-disconnect-from-commissioning-robot ?jobid)
+  (action (
+            (format t "=========================>>> tcb-disconnect-and-send-task-to-commissioning-robot ~%")
+            (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+                  (robot (tcl-kb-query :key '(is-a) :value '((is-a robot)))))        
+
+            (tcl-wiring-disconnect :clientComp "ComponentSeq2SeqCom_1" :wiringName "TaskSendOut")
+
+            (tcl-wiring-disconnect :clientComp "ComponentSeq2SeqCom_2" :wiringName "TaskSendOut")
+            
+))))
+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+

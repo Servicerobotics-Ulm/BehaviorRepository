@@ -1,0 +1,113 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; mps station
+
+;;(execute '(tcb-fetch-from-mps-station 1 0 ))
+;;(execute '(tcb-deliver-to-mps-station 2 0 ))
+
+;;(execute '(tcb-deliver-from-to-mps-station 1 0 2 0 ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;tcb-deliver-from-to-mps-station
+(define-tcb (tcb-deliver-from-to-mps-station ?fetch-station-id ?fetch-beltid ?deliver-station-id ?deliver-beltid)
+  (rules (rule-fetch-from-mps-station-failed rules-deliver-to-mps-station-failed rule-abort-job-error-ack))
+  (action (
+            (format t "=========================>>> tcb-deliver-from-to-mps-station ~a ~a ~a ~a ~%" '?fetch-station-id '?fetch-beltid '?deliver-station-id '?deliver-beltid )))
+  (plan (
+          (tcb-fetch-from-mps-station ?fetch-station-id ?fetch-beltid)
+          (tcb-deliver-to-mps-station ?deliver-station-id ?deliver-beltid))))
+
+(define-rule (rule-fetch-from-mps-station-failed)
+  (tcb (tcb-fetch-from-mps-station ?fetch-station-id ?fetch-beltid))
+  (return-value (ERROR (FETCH MPS)))
+  (action (
+              (format t "=========================>>> RULE: ( rule-fetch-from-mps-station-failed (ERROR (FETCH MPS))  ~%")
+              (tcl-delete-plan)
+              '(ERROR (FETCH DELIVER MPS)))))
+
+(define-rule (rules-deliver-to-mps-station-failed)
+  (tcb (tcb-deliver-to-mps-station ?stationid ?beltid))
+  (return-value (ERROR (DELIVER MPS)))
+  (action (
+              (format t "=========================>>> RULE: ( rules-deliver-to-mps-station-failed (ERROR (DELIVER MPS))  ~%")
+              (tcl-delete-plan)
+              '(ERROR (FETCH DELIVER MPS)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;tcb-fetch-from-mps-station
+(define-tcb (tcb-fetch-from-mps-station ?stationid ?beltid)
+  (rules (rule-mps-approach-failed-fetch rule-mps-load-failed rule-mps-manual-load-failed rule-mps-docking-failed rule-mps-undocking-failed rule-abort-job-error-ack))
+  (action (
+           (let* ((station (tcl-kb-query :key '(is-a id) :value `((is-a station)(id ?stationid))))
+	          (station-type (get-value station 'type))
+	          (station-approach-location (get-value station 'approach-location)))
+            (format t "=========================>>> tcb-fetch-from-mps-station station-id: ~a belt: ~a station-type: ~a station-approach-location: ~a ~%" '?stationid '?beltid station-type station-approach-location)
+            (cond
+              ((equal station-type 'MANUAL-STATION)
+                (tcl-push-plan :plan `(
+                                  (tcb-update-running-job-state 'DRIVING)
+                                  (NAVIGATION.approachLocation ,station-approach-location)
+                                  (tcb-update-running-job-state 'DRIVING-DONE)
+                                  (MPS.tcb-manual-load)
+                                  )))
+              (T
+                (tcl-push-plan :plan `(
+                                  (tcb-update-running-job-state 'DRIVING)
+                                  (NAVIGATION.approachLocation ,station-approach-location)
+                                  (tcb-update-running-job-state 'DRIVING-DONE)
+                                  (MPS.tcb-mps-station-dock ?stationid ?beltid)
+                                  (MPS.tcb-mps-station-load ?stationid)
+                                  (MPS.tcb-mps-station-undock)
+                                  ))))
+             ))))
+
+
+
+(define-rule (rule-mps-approach-failed-fetch)
+  (tcb (tcb-approach-location ?location))
+  (return-value (ERROR (UNKNOWN LOCATION)))
+  (action (
+              (format t "=========================>>> RULE: rule-mps-approach-failed-fetch (ERROR (UNKNOWN LOCATION))  ~%")
+              (tcl-delete-plan)
+              '(ERROR (FETCH MPS)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;tcb-deliver-to-mps-station
+(define-tcb (tcb-deliver-to-mps-station ?stationid ?beltid)
+  (rules (rule-mps-approach-failed-deliver rule-mps-manual-unload-failed rule-mps-docking-failed rule-mps-undocking-failed rule-mps-unload-failed rule-abort-job-error-ack))
+  (action (
+           (let* ((station (tcl-kb-query :key '(is-a id) :value `((is-a station)(id ?stationid))))
+	          (station-type (get-value station 'type))
+	          (station-approach-location (get-value station 'approach-location)))
+             (format t "=========================>>> tcb-deliver-to-mps-station station-id: ~a belt: ~a station-type: ~a station-approach-location: ~a ~%" '?stationid '?beltid station-type  station-approach-location)
+             (cond
+              ((equal station-type 'MANUAL-STATION)
+                (tcl-push-plan :plan `(
+                                  (tcb-update-running-job-state 'DRIVING)
+                                  (NAVIGATION.approachLocation ,station-approach-location)
+                                  (MPS.tcb-manual-unload)
+                                  )))
+              (T
+                (tcl-push-plan :plan `(
+                                  (tcb-update-running-job-state 'DRIVING)
+                                  (NAVIGATION.approachLocation ,station-approach-location)
+                                  (MPS.tcb-mps-station-dock ?stationid ?beltid)
+                                  (MPS.tcb-mps-station-unload-belts ?stationid)
+                                  (MPS.tcb-mps-station-undock-mps)
+                                  ))))
+             ))))
+
+(define-rule (rule-mps-approach-failed-deliver)
+  (tcb (tcb-approach-location ?location))
+  (return-value (ERROR (UNKNOWN LOCATION)))
+  (action (
+              (format t "=========================>>> RULE:  rule-mps-approach-failed-deliver (ERROR (UNKNOWN LOCATION))  ~%")
+              (tcl-delete-plan)
+              '(ERROR (DELIVER MPS)))))
+
+
+
+
