@@ -1,0 +1,17 @@
+(tcl-kb-update :key '(is-a id) :value '( (is-a station) (id 3) (approach-location Station3) (approach-waypoint 3) (docking-type LASER-IR) (type mps)))
+
+(tcl-kb-update  :key '(is-a name)  :value '(    (is-a location)    (name Station3)    (approach-type (region))    (approach-region-pose (1105 -1081 0))    (approach-region-dist 150)    (orientation-region (angle-absolute 307))    (backward-dist 500)))
+
+(tcl-kb-update :key '(is-a id) :value '( (is-a station) (id 2) (approach-location Station2) (approach-waypoint 2) (docking-type LASER-IR) (type mps)))
+
+(tcl-kb-update  :key '(is-a name)  :value '(    (is-a location)    (name Station2)    (approach-type (region))    (approach-region-pose (-1366 -929 0))    (approach-region-dist 150)    (orientation-region (angle-absolute 247))    (backward-dist 500)))
+
+(tcl-kb-update :key '(is-a id) :value '( (is-a station) (id 1) (approach-location Station1) (approach-waypoint 1) (docking-type LASER-IR) (type mps)))
+
+(tcl-kb-update  :key '(is-a name)  :value '(    (is-a location)    (name Station1)    (approach-type (region))    (approach-region-pose (-1104 1080 0))    (approach-region-dist 150)    (orientation-region (angle-absolute 127))    (backward-dist 500)))
+
+(tcl-kb-update :key '(is-a id) :value '( (is-a station) (id 0) (approach-location Station0) (approach-waypoint 0) (docking-type LASER-IR) (type mps)))
+
+(tcl-kb-update  :key '(is-a name)  :value '(    (is-a location)    (name Station0)    (approach-type (region))    (approach-region-pose (1366 929 0))    (approach-region-dist 150)    (orientation-region (angle-absolute 67))    (backward-dist 500)))
+
+(tcl-kb-update  :key '(is-a name)  :value '(    (is-a location)    (name home)    (approach-type (region))    (approach-region-pose (0 0 0))    (approach-region-dist 150)    (orientation-region (angle-absolute 0))    (backward-dist 500)))
