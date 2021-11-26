@@ -1,0 +1,4 @@
+TaskRealizationModel BehaviorPathNavigationTest {
+	AbstractCoordinationModuleInstance kb coordModuleDef CommBasicObjects.KBModule  
+	AbstractCoordinationModuleInstance navPath coordModuleDef DomainRobotFleetNavigation.navPath
+}

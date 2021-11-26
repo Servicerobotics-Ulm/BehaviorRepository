@@ -1,0 +1,5 @@
+(format t "startUp ~%")
+
+(execute '(sendPath 0))
+
+(format t "startUp DONE!! ~%")

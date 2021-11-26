@@ -1,0 +1,227 @@
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 1000)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name room-1)
+            (speech "zafh lab")
+            (size (20000 20000))
+            (offset (-10000 -10000))))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name home)
+            (speech "home location")
+            (approach-type (region))
+            (approach-region-pose (0 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (0 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (angle-absolute 0))
+            (orientation-exact (angle-absolute 0))
+            (backward-dist 500)))
+            
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name rack1)
+            (speech "rack location")
+            (approach-type (region))
+            (approach-region-pose (-1400 -1300 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-1400 -1300 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (angle-absolute 180))
+            (orientation-exact (angle-absolute 180))
+            (backward-dist 500)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '( 
+            (is-a location)
+            (name rack2)
+            (speech "rack location")
+            (approach-type (region))
+            (approach-region-pose (300 -1300 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (200 -1300 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (angle-absolute 180))
+            (orientation-exact (angle-absolute 180))
+            (backward-dist 500)))
+
+;; Location to where larry should navigate to drop the picked item
+(tcl-kb-update
+  :key '(is-a name)
+  :value '(
+            (is-a location)
+            (name drop-location)
+            (speech "drop location")
+            (approach-type (exact))
+            (approach-region-pose (-1040 1360 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (-1040 1360 0))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (angle-absolute 115))
+            (orientation-exact (angle-absolute 115))
+            (backward-dist 500)))
+
+(tcl-kb-update
+  :key '(is-a id type)
+  :value '(
+            (is-a rack)
+        (id AFRAME_0)
+            (type a-frame)
+            ;(pre-grasp-pose (-0.05 0.0 0.03 0 0 0))
+            (pre-grasp-pose (-0.015 -0.01 0.01 0 0 0))
+            (pull-out-pose (0 0 0.2 0 0 0))
+            (planned-grasping "false")
+        (location-id 2)
+        ;(location-id a-frame-1)
+        (recognition-component "SmartRackDetection")
+            (dimensions (700 550 1000))   ;width, depth, height in mm 
+            (pick-distance (1.0 0.61))   ;x y in m 
+            (obj-recog-ptu-poses ((1.57 -0.48)))
+            (levels ((0.83 1.11) ))
+        (post-grasping-state GRASPABLE)))
+
+(tcl-kb-update
+  :key '(is-a id type)
+  :value '(
+            (is-a rack)
+        (id inclined-shelf-1)
+            (type inclined-shelf)
+            (pre-grasp-pose (-0.01 0 0 0 0 0))
+            (pull-out-pose (-0.17 0 0 0 0 0))
+            (planned-grasping "false")
+            ;(planned-grasping "false")
+        (location-id 1)
+        ;(location-id inclined-shelf-1)
+            (recognition-component "SmartKinectBoxDetection")
+            (dimensions (1000 650 1500))   ;width, depth, height in mm
+            (pick-distance (1.0 0.7))   ;x y in m 
+            ;(obj-recog-ptu-poses ((1.57 -0.63) (1.57 -0.63) (1.57 0.0)))
+            (obj-recog-ptu-poses ((1.57 -0.63) (1.57 -0.43) (1.57 0.0)))
+            ;(levels ((0.0 0.60) (0.60 1.1) (1.1 1.5))) original
+            (levels ((0.7 0.95) (0.60 1.1) (1.1 1.5))) ;test on robotino
+            (post-grasping-state COMMISSIONED)))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a location)
+            (name ptu-look-left)
+            (obj-recog-poses ((ptu) ((1.57 -0.43))))            
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a location)
+            (name default)
+            (obj-recog-poses ((ptu) ((0 0))))            
+          )
+)  
+
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "smacks")
+            (type SMACKS)
+        (rack-id AFRAME_0)
+        ;(shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 1)
+))
+
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "corn flakes")
+            (type CORN-FLAKES)
+        (rack-id AFRAME_0)
+        ;(shelf-level 1)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 2)
+))
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "frosties")
+            (type FROSTIES)
+        (rack-id AFRAME_0)
+        ;(shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 3)
+))
+
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "special corn flakes")
+            (type SPECIAL)
+        ;(rack-id a-frame-1)
+            (rack-id AFRAME_0)
+        ;(shelf-level 1)
+            ;(shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 4)
+))
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "chocolate")
+            (type CHOCO)
+        (rack-id AFRAME_0)
+        ;(shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            ;(grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (-0.0 0.0 -0.0 0.0 -0.0 0.0 0 0 0 0 0 0)))
+            ;(slot 5)
+))       
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+            (is-a object-class)
+            (speech "ibu")
+            (type RATIOPHARM-IBU)
+        (rack-id inclined-shelf-1)
+        (shelf-level 0)
+            ;height, depth, side, azimuth, elevation, roll
+            (grasping (COMMMANIPULATIONPLANNEROBJECTS.MANIPULATIONPLANNERPARAMETER.GRASPING_SIMPLE (0.0 0.0 0.0 0.0 -0.0 -0.0 0.0 0.0 0 0 0 0)))
+            ))                            

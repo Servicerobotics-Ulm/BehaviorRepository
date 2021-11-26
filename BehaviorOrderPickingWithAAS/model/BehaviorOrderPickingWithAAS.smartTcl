@@ -1,0 +1,171 @@
+(define-tcb (waitForCommands)
+  (module "FleetManager")
+  (action (
+            (format t "=========================>>> waitForCommands ~%")
+
+            (tcl-activate-event :name 'evt-cmd
+                                :handler 'handler-cmd
+                                :server 'fleetManager 
+                                :service 'fleetEvent
+                                :mode 'continuous
+            )
+          )
+  )
+)
+
+(define-event-handler (handler-cmd)
+  (action (
+           (let ((cmd (read-from-string (tcl-event-message))))
+            (format t "=========================>>> COMMAND: ~s ~%~%" cmd)
+            (eval cmd)
+            (tcl-push-back-plan :plan `((sendFinished)))
+           )
+          )
+  )
+)
+
+(define-tcb (sendFinished)
+  (module "FleetManager")
+  (action (
+  	(tcl-send :server 'fleetManager :service 'fleetSend :param 'SUCCESS)
+  ))
+)
+
+
+;(execute '(manipulationModule.queryStateFromOpenRave))
+;(execute '(tcbStartup))
+;(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+(define-tcb (tcbStartup)
+
+  (action ( 
+    (format t "################################## tcbStartup ~%")
+  ))
+
+  (plan(
+    (navigation.initNavigation)
+    (navigation.loadNavigationMap "navigation-map")
+    (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+    (localizationModInst.tcb-trigger-global-localization)
+    (localizationModInst.localizationSetRobotPose 0 0 0)
+    )
+  )  
+)
+
+;(execute '(goto home))
+;(execute '(goto rack1))
+;(execute '(goto rack2))
+(realize-tcb (goto ?pose)
+	(plan(
+       	(localizationModInst.tcb-activate-localization)
+		(navigation.approachLocation ?pose)
+		(localizationModInst.tcb-deactivate-localization))
+	)
+)
+
+;(execute '(manipulationModule.clearOR))
+
+;(execute '(ptuModule.moveptu absolute 1.57 -0.55))
+;(execute '(detectBoxes))
+;(execute '(manipulationModule.loadEnvInOpenRave 0))
+;(execute '(graspObject 0 RATIOPHARM-IBU))
+
+;(execute '(rackDetectionModule.tcb-set-query-image))
+;(execute '(rackDetectionModule.setNeutral))
+;(execute '(rackDetectionModule.detectRack => ?envId ?objs))
+
+
+;(execute '(manipulationMdoule.open))
+;(execute '(manipulationModule.close))
+
+
+(realize-tcb (orderPickingRackSim ?type)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
+	(action 
+		(
+			(format t "orderPickingRackSim ~s ~%" '?type)
+		)
+	)
+	
+	(plan (
+		(goto rack2)
+		(detectRackSim)
+		(showObjects)
+		(pickAndPlace 0 ?type => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
+		(manipulationModule.open)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+(realize-tcb (orderPickingBoxesSim)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
+	(action 
+		(
+			(format t "orderPickingBoxesSim ~s ~%" '?type)
+		)
+	)
+	
+	(plan (
+		(goto rack1)
+		(detectBoxesSim)
+		(showObjects)
+		(pickAndPlace 0 RATIOPHARM-IBU => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
+		(manipulationModule.open)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+(realize-tcb (orderPickingRackReal ?type)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
+	(action 
+		(
+			(format t "orderPickingRackReal ~s ~%" '?type)
+		)
+	)
+	
+	(plan (
+		(goto rack2)
+		(detectRackReal)
+		(showObjects)
+		(pickAndPlace 0 ?type => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
+		(manipulationModule.open)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+(realize-tcb (orderPickingBoxesReal)
+	(rules (pickAndPlace_NoIk pickAndPlace_NoPath))
+	(action 
+		(
+			(format t "orderPickingBoxesReal")
+		)
+	)
+	
+	(plan (
+		(goto rack1)
+		(detectBoxesReal)
+		(showObjects)
+		(pickAndPlace 0 RATIOPHARM-IBU => ?graspedObjectId)	 
+		(goto drop-location) 
+	    (manipulationModule.gotoAnglesOR 'name drop-to-station)
+		(manipulationModule.open)
+		(manipulationModule.release ?graspedObjectId)
+		(manipulationModule.gotoAnglesOR 'name standby)
+		(goto home)
+    ))
+)
+
+
+
+

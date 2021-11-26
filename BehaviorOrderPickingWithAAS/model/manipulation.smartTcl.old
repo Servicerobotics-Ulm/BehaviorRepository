@@ -1,0 +1,283 @@
+;; TTODO: handler should not be necessary?
+(define-tcb (gotoTCPURRelI ?obj-id)
+  (module "manipulationPlannerModule")
+  (action (
+           (format t "=========================>>> tcb-grasp-object real-direct ~%")
+           (format t "obj-id ~a ~%" '?obj-id)
+           (let* ((obj (tcl-kb-query :key '(is-a id) :value '((is-a object)(id ?obj-id))))
+                  (obj-class (tcl-kb-query :key '(is-a type) 
+                                           :value `((is-a object-class)(type ,(get-value obj 'type)))))
+                  (rack (tcl-kb-query :key '(is-a id ) 
+                                      :value `((is-a rack)(id ,(get-value obj-class 'rack-id)))))
+                  (relative-pre-grasp-pose (get-value rack 'pre-grasp-pose))
+
+                  (relative-grasp-pose (list (* (first relative-pre-grasp-pose ) -1)  (* (second relative-pre-grasp-pose ) -1)  (* (third relative-pre-grasp-pose ) -1)  0 0 0 )))
+
+                  (print "Direct relative-grasp-pose: ")
+                  (print relative-grasp-pose)
+
+                  ; (tcl-activate-event :name 'evt-traj 
+                  ;                 :handler 'handler-grasping 
+                  ;                 :server 'cs_trajExecution 
+                  ;                 :service 'manipulatorevent 
+                  ;                 :mode 'continuous)
+
+
+                  (tcl-push-plan :plan `(
+                   (manipulationModule.open) 
+                   (manipulationModule.gotoTCPURRel ,relative-grasp-pose)
+                   (manipulationModule.close)
+                  ))
+            )
+    ))
+)
+
+(define-tcb (mGotoPreWithPlanned ?envID ?objType => ?graspedObjectId)
+  (rules (gotoTCPOR_NoPath))
+  (action (
+            (format t "=========================>>> mGotoPre:~%")
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) 
+                                                :value '((is-a object)(envid ?envID)(type ?objType)(status GRASPABLE))))
+                    (count-graspable (length obj-list)))
+            (cond
+                ((> count-graspable 0)
+		  (let ((obj (first (last obj-list))))
+
+                  (format t "obj: ~a~%" obj)
+                  (format t " id : ~s ~%"  (get-value obj 'id))
+                  (format t " type : ~s ~%"  (get-value obj 'type))
+
+		    (tcl-kb-update :key '(is-a id) 
+		                  :value `(
+		                            (is-a OBJECT)
+		                            (id ,(get-value obj 'id))
+		                            (status TO_BE_GRASPED)))
+
+		    (tcl-bind-var :name '?graspedObjectId :value (get-value obj 'id))
+
+		 (let* ( 
+			(obj-class (tcl-kb-query :key '(is-a type ) 
+                                            	 :value `((is-a object-class)(type ,(get-value obj 'type)))))
+			(rack (tcl-kb-query :key '(is-a id ) 
+                                            :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+
+		  (format t "rack id: ~a~%" (get-value rack 'id))
+                  (format t " type: ~s ~%"  (get-value rack 'type))
+                  (format t " pre-grasp-pose: ~s ~%"  (get-value rack 'pre-grasp-pose))
+
+                 (cond 
+                  ((get-value rack 'pre-grasp-pose) 
+
+                    (setf pre-gripping-pose (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                                                          (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                                                          (first (get-value rack 'pre-grasp-pose)) (third (get-value rack 'pre-grasp-pose)) (second (get-value rack 'pre-grasp-pose)))
+                                                   `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) )))
+                    (format t "obj pose: ~s ~%" (get-value obj 'pose))
+                    (format t "pre gripping pose: ~s ~%" pre-gripping-pose)
+
+                    (cond 
+                      ;planned grasping:
+                      ( (string-equal (get-value rack 'planned-grasping) "true") 
+
+                        (let (        (obj-pose-rel (list -0.1 0 0 0 0 0)) 
+                                      (obj-pull-pose (list +0.1 0 0 0 0 0)) )
+
+                                      ;(setf obj-pose-rel (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                      ;                                    (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                      ;                                    0.050 0.0 0.0)
+                                      ;             `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) )))
+
+
+                                      ;(setf obj-pull-pose (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                      ;                                    (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                      ;                                    -0.1 0.0 0.0)
+                                      ;            `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) )))
+
+             				;(setf obj-pose-rel (0.1 0 0 0 0 0))
+              				(format t "obj-pose-rel : ~s ~%" obj-pose-rel)
+              				(format t "obj-pull-pose : ~s ~%" obj-pull-pose)
+              				(tcl-push-plan :plan `(
+					(manipulationModule.gotoTCPOR ,pre-gripping-pose)
+					(manipulationModule.gotoTCPURRel ,obj-pose-rel)
+					(manipulationModule.gotoTCPURRel ,obj-pull-pose)
+					))))
+
+                      ;unplanned grasping:
+                      (T (tcl-push-plan :plan `(
+                      ;(tcb-manipulator-pose-tcp ,pre-gripping-pose)
+                      (manipulationModule.gotoTCPOR ,pre-gripping-pose)
+                      (manipulationModule.grasp ,(get-value obj 'id))
+                      ;(manipulationModule.delete 5)
+                      ;(tcb-delete-obj-from-openrave ,(get-value obj 'id))
+                      ;;;(manipulationModule.delete ,(get-value obj 'id))
+                    )))))
+
+                  (T 
+		    (format t "no pre gripping pose defined~%")))
+        )
+
+            '(SUCCESS ())))
+          (T 
+	    '(ERROR (NO GRASPABLE OBJECTS))))))))
+	    
+
+; (execute '(manipulationModule.gotoTCPOR tcp1))
+; (execute '(gotoTCP 'name tcp-one))
+(define-tcb (gotoTCP 'name ?name)
+  (precondition  (not (equal '() (get-value (tcl-kb-query :key '(is-a name) :value '( (is-a tcp) (name ?name))) 'pose))))
+  (action ((format t "=========================>>> gotoTCPOR 'name ~s ~%" '?name)
+            
+           (let* (
+                  (tcp (get-value (tcl-kb-query :key '(is-a name) :value '( (is-a tcp) (name ?name))) 'pose))
+                 )
+           	 (format t "=========================>>> tcp ~s ~%" tcp)
+             (tcl-push-plan :plan `((manipulationModule.gotoTCPOR ,tcp)))
+               
+            '(SUCCESS ())
+          ) 
+  ))
+)
+
+; (execute '(pickAndPlace 0 CHOCO))
+(define-tcb (pickAndPlace ?envID ?objType)
+  (action (
+    (format t "=========================>>> pickAndPlace:~%")
+    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) :value '((is-a object)(envid ?envID)(type ?objType)(status GRASPABLE))))
+            (count-graspable (length obj-list))
+          )
+
+          (format t "count-graspable ~s ~%" count-graspable)  
+
+          (cond
+            (; Condition 1
+              (> count-graspable 0)
+                (let ( (obj (first (last obj-list)))
+
+                     )
+
+                  (format t "obj: ~a~%" obj);                   
+                  (format t " id : ~s ~%"  (get-value obj 'id))
+                  (format t " type : ~s ~%"  (get-value obj 'type))
+
+                  (tcl-kb-update :key '(is-a id) :value `((is-a OBJECT) (id ,(get-value obj 'id)) (status TO_BE_GRASPED)))
+
+                  (let* ( (obj-class (tcl-kb-query :key '(is-a type ) :value `((is-a object-class)(type ,(get-value obj 'type)))))
+                          (rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+
+
+                    (format t "rack id: ~a~%" (get-value rack 'id))
+                    (format t " type: ~s ~%"  (get-value rack 'type))
+                    (format t " pre-grasp-pose: ~s ~%"  (get-value rack 'pre-grasp-pose))
+
+                    (cond
+                      ((get-value rack 'pre-grasp-pose) ; Condition 2
+
+                        (setf pre-gripping-pose (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                                (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                                (first (get-value rack 'pre-grasp-pose)) (third (get-value rack 'pre-grasp-pose)) (second (get-value rack 'pre-grasp-pose)))
+                                                `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) ))
+                        )
+                        
+                        (format t "obj pose: ~s ~%" (get-value obj 'pose))
+                        
+                        (format t "pre gripping pose: ~s ~%" pre-gripping-pose)
+
+                        (tcl-push-back-plan :plan `((manipulationModule.gotoTCPOR ,pre-gripping-pose)
+                                                    ;(tcb-wait-for-transportation-robot-docked)
+                                                    (manipulationModule.delete ,(get-value obj 'id))))
+                        
+
+                        (tcl-push-back-plan :plan `(
+                          ;(manipulationModule.tcb-add-obj-into-openrave ,(get-value obj 'id) nil) ; TODO: not working?
+                          (gotoTCPURRelI ,(get-value obj 'id))
+                          (manipulationModule.gotoTCPURRel ,(get-value rack 'pull-out-pose))
+                        ))
+                          
+                        (tcl-push-back-plan :plan `( ;(manipulationModule.tcb-add-obj-into-openrave ,(get-value obj 'id) nil)
+                                          ;(manipulationModule.grasp ,(get-value obj 'id))
+                                          ;(gotoAnglesORN drop-to-robot)
+                                          ;(manipulationModule.tcb-delete-grasped-obj-form-openrave)
+                                          ;(manipulationModule.delete ,(get-value obj 'id))
+                                          ;(manipulationModule.open)
+                                        )
+                       )
+                      )
+                      (T; Else Condition 2
+                        (format t "no pre gripping pose defined~%")
+                      )
+                    )
+
+                  )
+
+                  '(SUCCESS ())
+                )
+            )
+
+            (T ; Else Condition 1
+              '(ERROR (NO GRASPABLE OBJECTS))
+
+            )
+          )
+    )
+  ))
+)
+
+;(execute '(mGotoPreUp 0 CHOCO))
+(define-tcb (mGotoPreUp ?envID ?objType)
+  (action (
+            (format t "=========================>>> mGotoPreUp:~%")
+	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) 
+                                                :value '((is-a object)(envid ?envID)(type ?objType)(status GRASPABLE))))
+                    (count-graspable (length obj-list)))
+            (cond
+                ((> count-graspable 0)
+		  (let ((obj (first (last obj-list))))
+
+                  (format t "obj: ~a~%" obj)
+                  (format t " id : ~s ~%"  (get-value obj 'id))
+                  (format t " type : ~s ~%"  (get-value obj 'type))
+
+		    (tcl-kb-update :key '(is-a id) 
+		                  :value `(
+		                            (is-a OBJECT)
+		                            (id ,(get-value obj 'id))
+		                            (status TO_BE_GRASPED)))
+
+		 (let* ( 
+			(obj-class (tcl-kb-query :key '(is-a type ) 
+                                            	 :value `((is-a object-class)(type ,(get-value obj 'type)))))
+			(rack (tcl-kb-query :key '(is-a id ) 
+                                            :value `((is-a rack)(id ,(get-value obj-class 'rack-id))))))
+
+		  (format t "rack id: ~a~%" (get-value rack 'id))
+                  (format t " type: ~s ~%"  (get-value rack 'type))
+                  (format t " pre-grasp-pose: ~s ~%"  (get-value rack 'pre-grasp-pose))
+
+                 (cond 
+                  ((get-value rack 'pre-grasp-pose) 
+
+                    (setf pre-gripping-pose (append (transformPoseToPoint (nth 7 (get-value obj 'pose)) (nth 8 (get-value obj 'pose)) (nth 9 (get-value obj 'pose))
+                                                                          (nth 10 (get-value obj 'pose)) (nth 11 (get-value obj 'pose)) (nth 12 (get-value obj 'pose))
+                                                                          (first (get-value rack 'pre-grasp-pose)) (third (get-value rack 'pre-grasp-pose)) (second (get-value rack 'pre-grasp-pose)))
+                                                   `( ,(nth 10 (get-value obj 'pose)) ,(nth 11 (get-value obj 'pose)) ,(nth 12 (get-value obj 'pose)) )))
+                    (format t "obj pose: ~s ~%" (get-value obj 'pose))
+                    (format t "pre gripping pose: ~s ~%" pre-gripping-pose)
+
+                    (tcl-push-plan :plan `(
+
+                      ;(tcb-manipulator-pose-tcp ,pre-gripping-pose)
+                      (manipulationModule.gotoTCPOR ,pre-gripping-pose)
+                      (manipulationModule.gotoTCPORRel ,(get-value rack 'pull-out-pose))
+
+                      
+                      ;(tcb-delete-obj-from-openrave ,(get-value obj 'id))
+                      ;;;(manipulationModule.delete ,(get-value obj 'id))
+
+                    )))
+                  (T 
+		    (format t "no pre gripping pose defined~%")))
+        )
+
+            '(SUCCESS ())))
+          (T 
+	    '(ERROR (NO GRASPABLE OBJECTS))))))))

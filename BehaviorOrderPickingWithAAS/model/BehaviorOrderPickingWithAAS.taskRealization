@@ -1,0 +1,19 @@
+TaskRealizationModel BehaviorOrderPickingWithAAS { 
+	 
+	//knowledge base
+	AbstractCoordinationModuleInstance kbModule coordModuleDef CommBasicObjects.KBModule
+    
+	//object detection, pick  and place	
+	AbstractCoordinationModuleInstance ptuModule coordModuleDef DomainPTU.ptuModule
+	AbstractCoordinationModuleInstance boxDetectionModule coordModuleDef CommObjectRecognitionObjects.objRecognitionModule
+	AbstractCoordinationModuleInstance rackDetectionModule coordModuleDef CommObjectRecognitionObjects.objRecognitionModule
+	AbstractCoordinationModuleInstance manipulationModule coordModuleDef CommManipulationPlannerObjects.manipulationPlannerModule
+	 
+	//navigation
+	AbstractCoordinationModuleInstance navigation coordModuleDef CommNavigationObjects.NavigationModule	
+	AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
+	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
+	
+	AbstractCoordinationModuleInstance fleet coordModuleDef DomainRobotFleet.FleetManager
+	
+}

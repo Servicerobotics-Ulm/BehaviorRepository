@@ -1,0 +1,5 @@
+(tcl-push-back-plan :plan `((OrderPickingBoxesSim)))
+
+(tcl-push-back-plan :plan `((goto rack2)))
+(tcl-push-back-plan :plan `((goto home)))
+(tcl-push-back-plan :plan `((goto rack2)))

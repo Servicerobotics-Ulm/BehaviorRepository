@@ -1,0 +1,53 @@
+(execute '(fleet.waitForCommands))
+
+(defun menu()
+  
+(loop
+
+  (format t "~%MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")  
+  (format t " OrderPicking ~%")
+  (format t " ---------------------------------------------------- ~%")  
+  (format t " 01 - Order picking in simulator~%")
+  ;(format t " 01 - Order picking from Shelf in Simulator ~%")
+  ;(format t " 02 - Order picking from A-frame in Simulator ~%")
+  ;(format t " 03 - Order picking from Shelf in RealWorld~%")
+  ;(format t " 04 - Order picking from A-frame in RealWorld~%")
+  (format t " 00 - exit ~%")
+  (format t "Input: ~%")   
+  (setf nmbr (parse-integer (read-line nil)))
+  
+  (cond
+    ;((equal nmbr 1)
+    ;  (execute `(OrderPicking1Sim))
+    ;)
+
+    ((equal nmbr 1)
+      (format t "Enter type (ibu/smacks/corn-flakes/frosties/special/choco): ~%")
+      (setf selected-type (read-from-string(string-upcase (read-line nil))))
+      (cond 
+      	((string-equal selected-type "ibu")
+      		(execute `(OrderPickingBoxesSim))
+      	)
+      	(T 
+      		(execute `(OrderPickingRackSim ,selected-type))
+      	)
+      )
+    )
+
+    ((equal nmbr 3)
+     	;(execute `(OrderPicking1Real))
+    )
+
+    ((equal nmbr 4)
+      ;(execute `(OrderPicking2Real))
+    )
+
+    ((equal nmbr 0)
+      (return)
+    )
+      
+  )
+ )
+)
+(menu)
