@@ -1,0 +1,12 @@
+(define-tcb (startRGBDLaser)
+  (action (	
+            (format t "===== startRGBDLaser~%")            
+          )
+  )
+  (plan (                 
+          ;;activate realsense and laser generation
+          (turnOnOffCamera.activateCameraPush)                           
+          (laserFromRGBDGen.activateLaserGeneration)
+        )
+  )
+)

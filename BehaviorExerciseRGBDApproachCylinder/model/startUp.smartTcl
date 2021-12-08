@@ -1,0 +1,2 @@
+(format t "INIT DONE ~%")
+(execute '(startRGBDLaser))

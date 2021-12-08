@@ -1,0 +1,12 @@
+(define-tcb (startRGBDLaser)
+  (action (	
+            (format t "===== startCompareTask~%")
+;            
+          )
+  )
+  (plan (                 
+          ;;activate realsense
+          (turnOnOffCamera.activateCameraPush)                           
+        )
+  )
+)

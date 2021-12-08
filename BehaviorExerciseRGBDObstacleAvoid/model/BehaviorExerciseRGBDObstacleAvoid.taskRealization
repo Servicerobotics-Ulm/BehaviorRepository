@@ -1,0 +1,6 @@
+TaskRealizationModel BehaviorExerciseRGBDObstacleAvoid { 
+	AbstractCoordinationModuleInstance turnOnOffCamera coordModuleDef DomainVision.CameraModule
+	AbstractCoordinationModuleInstance laserFromRGBDGen coordModuleDef CommBasicObjects.LaserGenerationModule	
+	AbstractCoordinationModuleInstance visLaser coordModuleDef CommBasicObjects.VisualizationModule
+	AbstractCoordinationModuleInstance visRS coordModuleDef CommBasicObjects.VisualizationModule
+}

@@ -1,0 +1,4 @@
+TaskRealizationModel BehaviorExerciseRGBDApproachCylinder { 
+	AbstractCoordinationModuleInstance turnOnOffCamera coordModuleDef DomainVision.CameraModule
+	AbstractCoordinationModuleInstance visRS coordModuleDef CommBasicObjects.VisualizationModule
+}
