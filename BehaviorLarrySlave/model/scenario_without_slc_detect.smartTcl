@@ -1,4 +1,4 @@
-(define-tcb (tcb-run-commissioning ?orderList)
+(define-tcb (tcb-run-commissioning ?orderList ?nav-type)
   (module "Seq2SeqModule")
   (rules (rule-end-job) )
   (sync-variables (transp-robot-docked transp-robot-undocked))
@@ -17,9 +17,27 @@
       (dolist (stationOrder sorted-order-list)
         (tcl-push-back-plan :plan `( 
                (tcb-update-running-job-state 'DRIVING)	
-               (tcb-get-location-from-object-type ,(first (first stationOrder)) => ?location)
                (SEQ2SEQ.tcb-send-job-next-station-to-transportation-robot)
-               (navigation.approachLocation ?location)
+			 )
+        )
+        
+        (cond
+        	((equal ?nav-type "free")
+				(tcl-push-back-plan :plan `( 
+				       (tcb-get-location-from-object-type ,(first (first stationOrder)) => ?location)
+					 )
+				)
+        	)
+        	(T
+				(tcl-push-back-plan :plan `( 
+				       (getWaypointFromObjectType ,(first (first stationOrder)) => ?location)
+					 )
+				)
+        	)
+        )
+
+        (tcl-push-back-plan :plan `(
+               (gotoPosition ?location ?nav-type)
                (BASE.getBasePose => ?x ?y ?yaw)
                (SEQ2SEQ.tcb-send-dockpose-right 1 ?x ?y ?yaw)
 
@@ -69,25 +87,25 @@
                   (format t "r-c of rack of obj-class of first stationOrder: ~s~%" (get-value rack 'recognition-component))
 
 			    (cond 
-		        	((string-equal (get-value rack 'recognition-component) "rack")
+		        	((string-equal (get-value rack 'recognition-component) "SmartRackDetection")
 		        		
                 (dolist (item '?stationOrder)
                 (tcl-push-back-plan :plan 
 		      				`(
 		  						(manipulationModule.gotoAnglesOR 'name picking-left)
-                  (detectRackSim)
+                  (detectRack)
 		  						(showObjects)
                   (processSingleObjectType ,(first item) ,(second item))
 					 		 )
 		      			)
                 )
 		        	)
-		        	((string-equal (get-value rack 'recognition-component) "box")
+		        	((string-equal (get-value rack 'recognition-component) "SmartKinectBoxDetection")
 		        		(dolist (item '?stationOrder)
                 (tcl-push-back-plan :plan 
 		      				`(
 		  						(manipulationModule.gotoAnglesOR 'name picking-left)
-                  (detectBoxesSim)
+                  (detectBoxes)
 		  						(showObjects)
                   (processSingleObjectType ,(first item) ,(second item))
 					 		 )
@@ -912,6 +930,19 @@
 ;		     ;(tcl-push-plan :plan `( (tcb-approach-location ,(get-value rack 'location-id))))
 ;
 ;                     (tcl-bind-var :name '?locationId :value (get-value rack 'location-id))))))
+(define-tcb (getWaypointFromObjectType ?objType => ?waypoint)
+  (action (
+            (format t "=========================>>> getWaypointFromObjectType: ~a ~%" '?objType)
+	     (let* ((obj-class (tcl-kb-query :key '(is-a type ) :value '((is-a object-class)(type ?objType))))
+  		    	(rack (tcl-kb-query :key '(is-a id ) :value `((is-a rack)(id ,(get-value obj-class 'rack-id)))))
+		    	(rack-waypoint (get-value rack 'approach-waypoint))
+  				)                         
+         
+         	(format t "rack-waypoint: ~a ~%" rack-waypoint)
+         	(tcl-bind-var :name '?waypoint :value rack-waypoint)
+         )
+   ))
+)
 
 
 ; expects location to have same name like rack-id
@@ -1032,14 +1063,46 @@
                                      (is-a location)
                                      (name ,pick-location-name)
                                      (approach-type (region))
-                                     (approach-region-pose ,pick-location)
+                                     ;(approach-region-pose ,pick-location)    
+                                     ; Timo 25-03-22
+                                     (approach-region-pose ,(get-value rack-location 'approach-region-pose)) 
                                      (approach-region-dist 75)
-                                     (orientation-region (angle-absolute ,(+ (nth 1 (get-value rack-location 'orientation-region)) (get-value robot 'pick-orientation))))))
+                                     ; Timo 25-03-22
+                                     ;(orientation-region (angle-absolute ,(+ (nth 1 (get-value rack-location 'orientation-region)) (get-value robot 'pick-orientation))))
+									 (orientation-region ,(get-value rack-location 'orientation-region))
+									 ;(orientation-exact (get-value rack-location 'orientation-exact))
+
+									 (format t "orientation-region ~s ~%" (get-value rack-location 'orientation-region))
+
+
+
+                                     ))
+
+
+                    (show-locations)
 
 
                      ;(tcl-bind-var :name '?locationId :value (get-value rack 'location-id))
                      (tcl-bind-var :name '?locationId :value pick-location-name)))))
 
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
 
 
 

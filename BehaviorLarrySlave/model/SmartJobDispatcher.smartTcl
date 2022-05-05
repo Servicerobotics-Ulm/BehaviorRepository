@@ -165,8 +165,8 @@
                                               
 
                     ((equal (second request) 'DeliverFromTo)
-                      (multiple-value-bind (jobtype jobid jobpriority robotid from-station-id from-belt to-station-id to-belt)
-                                   (values (second request) (third request) (fourth request) (fifth request) (sixth request) (seventh request) (eighth request) (ninth request))
+                      (multiple-value-bind (jobtype jobid jobpriority robotid from-station-id from-belt to-station-id to-belt nav-type)
+                                   (values (second request) (third request) (fourth request) (fifth request) (sixth request) (seventh request) (eighth request) (ninth request) (tenth request))
                       (format t "Deliver from Station: ~s Belt: ~s to Station ~s Belt ~s ~%" from-station-id from-belt to-station-id to-belt)
                       (tcl-kb-update :key '(is-a id) :value `(
                                               (is-a job) 
@@ -176,14 +176,15 @@
                                               (robotid ,robotid)
                                               (start-station ,from-station-id) (start-belt ,from-belt)
                                               (end-station ,to-station-id) (end-belt ,to-belt)
+                                              (nav-type ,nav-type)
                                               (type ,jobtype)))
 
-                      (tcl-push-back-plan :plan `( (tcb-job-deliver-from-to ,jobid ,from-station-id ,from-belt ,to-station-id ,to-belt)))))
+                      (tcl-push-back-plan :plan `( (tcb-job-deliver-from-to ,jobid ,from-station-id ,from-belt ,to-station-id ,to-belt ,nav-type)))))
 
                     ;; PushJob GotoPosition JOBID PRIORITY ROBOTINOID POSE
                     ((equal (second request) 'GotoPosition)
-                      (multiple-value-bind (jobtype jobid jobpriority robotid goal-pose) 
-                                           (values (second request) (third request) (fourth request) (fifth request) (sixth request))
+                      (multiple-value-bind (jobtype jobid jobpriority robotid goal-pose nav-type) 
+                                           (values (second request) (third request) (fourth request) (fifth request) (sixth request) (seventh request))
                       (format t "Goto Position: ~s ~%" goal-pose)
                       (tcl-kb-update :key '(is-a id) :value `(
                                               (is-a job) 
@@ -192,8 +193,12 @@
                                               (priority ,jobpriority)
                                               (robotid ,robotid)
                                               (goal-pose ,goal-pose)
+                                              (nav-type ,nav-type)
                                               (type ,jobtype)))
-                      (tcl-push-back-plan :plan `( (tcb-job-go-to-position ,jobid ,goal-pose)))))
+                      ;(tcl-push-back-plan :plan `( (tcb-job-go-to-position ,jobid ,goal-pose)))
+                      (tcl-push-back-plan :plan `( (gotoPositionJob ,jobid ,goal-pose ,nav-type)))
+
+                      ))
 
 
 ;;TODO
@@ -320,7 +325,7 @@
                       (cond
                         ;; PushJob RobotCommissioning JOBID PRIORITY Manipulation ROBOTINOID COMMISSIONINGROBOT [ORDER_ITEM QUANTITY]+
                         ((equal (fifth request) 'Manipulation)
-                         (multiple-value-bind (jobtype jobid jobpriority jobpart transportation-robot-id commissioning-robot-id commission-order)
+                         (multiple-value-bind (jobtype jobid jobpriority jobpart transportation-robot-id commissioning-robot-id commission-order docking-waypoint)
                            (apply #'values (cdr request))
                            (format t "Manipulation part - jobpart:~s trobotid:~s crobotid:~s order:~s ~%" jobpart transportation-robot-id commissioning-robot-id commission-order)
                            (tcl-kb-update :key '(is-a id) :value `(
@@ -333,7 +338,9 @@
                                  (priority ,jobpriority)
                                  (transportation-robot-id ,transportation-robot-id)
                                  (commissioning-robot ,commissioning-robot-id)
-                                 (commission-order ,commission-order)))
+                                 (commission-order ,commission-order)
+                                 (docking-waypoint ,docking-waypoint)
+                                 ))
 
                            (tcl-push-back-plan :plan `(
 ;;TODO
@@ -1046,7 +1053,7 @@
    ;                                                                                  ,(get-value robot 'is-docked) ,(get-value robot 'box-loaded) ,(first (get-value robot 'laser-component)) ,(get-value robot 'fleet-type) 
    ;                                                                                  ,(get-value robot 'sub-state)  ,(get-value robot 'current-symbolic-position) ,(get-value robot 'is-job-on-time) )))
     (let* ((robot (tcl-kb-query :key '(is-a) :value '((is-a robot))))
-           (message `(SystemState ,(get-value robot 'name) NIL NIL ,(get-value robot 'state) NIL NIL NIL NIL NIL NIL NIL NIL )))   
+           (message `(SystemState ,(get-value robot 'name) NIL NIL ,(get-value robot 'state) NIL NIL NIL NIL NIL NIL NIL NIL ,(get-value robot 'pos))))   
 
 
       (sendMessageToFleetManager "FleetManager" 'FLEETMANAGER message)

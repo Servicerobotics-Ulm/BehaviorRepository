@@ -20,15 +20,30 @@
                                 :server 'cs_seq2seq
                                 :service 'taskEvent
                                 :mode 'continuous)
-    (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid)))))
+    (let* ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+           (docking-waypoint (get-value job 'docking-waypoint))
+         )
       (format t "Job id:~s order:~a ~%" (get-value job 'id) (get-value job 'commission-order))
+	  (cond
+	  	((equal docking-waypoint -1)
+	  		(setf nav-type "free")
+	  	)
+	  	
+	  	(T
+	  		(setf nav-type "path")
+	  	)
+	  )
+	  
+	  (format t "nav-type: ~a ~%" nav-type)
 
       (tcl-push-back-plan :plan `(
                                    (tcb-connect-to-commissioning-robot ?jobid) ;; this should/could be done by the fleet manager
                                    (tcb-update-running-job-state 'DRIVING)
-                                   (tcb-fetch-from-mps-station ,(get-value job 'start-station) ,(get-value job 'start-belt))
+                                   ;(tcb-fetch-from-mps-station ,(get-value job 'start-station) ,(get-value job 'start-belt))
+                                   (collectBoxFromStation ,(get-value job 'start-station) ,(get-value job 'start-belt) ,nav-type)
                                    (tcb-wait-for-manipulation-robot-job-update ?jobid) ;; this one will push either a new station or complete the order
-                                   (tcb-deliver-to-mps-station ,(get-value job 'end-station) ,(get-value job 'end-belt))
+                                   ;(tcb-deliver-to-mps-station ,(get-value job 'end-station) ,(get-value job 'end-belt))
+                                   (deliverBoxToStation ,(get-value job 'end-station) ,(get-value job 'end-belt) ,nav-type)
                                  )
       ))
    	)
@@ -117,12 +132,24 @@
   (action (
     (format t "=========================>>> tcb-perform-commissioning-one-station  id: ~a ~%" ?jobid)
     (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid)))))
+    	(cond
+    		((equal (get-value job 'docking-waypoint) -1)
       (tcl-push-back-plan :plan `(
         (tcb-wait-for-manipulation-robot-pose => ?location)
-        ;Timo
-        ;(NAV.tcb-approach-location ?location)
-        ;(NAV.approachLocation ?location)
         (NAVIGATION.approachLocation ?location)
+			   	 )
+				)
+		    )
+		    
+		    (T
+		    	(tcl-push-back-plan :plan `(
+					(navPathClient.gotoLocation ,(get-value job 'docking-waypoint))
+			   	 )
+				)
+		    )
+        )
+    
+		(tcl-push-back-plan :plan `(
         (robotDocking.dockToRobot)
         (SEQ2SEQ.tcb-send-transportion-robot-docked)
         (tcb-wait-for-manipulation-robot-station-done)
@@ -311,8 +338,13 @@
 (define-tcb (tcb-connect-to-commissioning-robot ?jobid)
   (action (
             (format t "=========================>>> tcb-connect-and-send-task-to-commissioning-robot ~%")
-            (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
-                  (robot (tcl-kb-query :key '(is-a) :value '((is-a robot)))))
+            (let* (
+            	    (job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid))))
+                    (robot (tcl-kb-query :key '(is-a) :value '((is-a robot))))
+             	  	(name (format nil "~a~a" "ComponentSeq2SeqCom_Robotino_" (get-value robot 'name) ))
+             	  )
+
+            (format t "Connect: ~s ~%" name)
                   
             ;(format t "Connect ~a.ComponentSeq2SeqCom to ~a.ComponentSeq2SeqCom ~%" 
             ;	(get-value robot 'name)
@@ -324,15 +356,12 @@
             ;	(get-value robot 'name)          
             ;)
             
-     (tcl-wiring-connect :clientComp "ComponentSeq2SeqCom" :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom_2" :serverService "TaskSendIn")
+     		(tcl-wiring-connect :clientComp name :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom_Larry" :serverService "TaskSendIn")
             
-   	 (tcl-wiring-connect :clientComp "ComponentSeq2SeqCom_2" :wiringName "TaskSendOut" :serverComp "ComponentSeq2SeqCom" :serverService "TaskSendIn")            
+   	 		(tcl-wiring-connect :clientComp "ComponentSeq2SeqCom_Larry" :wiringName "TaskSendOut" :serverComp name :serverService "TaskSendIn")            
                     
-     ;(tcl-wiring-connect :clientComp (format nil "~a.ComponentSeq2SeqCom" (get-value robot 'name)) :wiringName "TaskSendOut" :serverComp (format nil "~a.ComponentSeq2SeqCom" (get-value job 'commissioning-robot)) :serverService "TaskSendIn")
-            
-     ;(tcl-wiring-connect :clientComp (format nil "~a.ComponentSeq2SeqCom" (get-value job 'commissioning-robot)) :wiringName "TaskSendOut" :serverComp (format nil "~a.ComponentSeq2SeqCom" (get-value robot 'name)) :serverService "TaskSendIn")
-            
-))))
+			)
+)))
 
 
 (define-tcb (tcb-disconnect-from-commissioning-robot ?jobid)

@@ -3,17 +3,22 @@
   :value `(
             (is-a robot)
             (name 22)
+            (env "sim") ; "real" or "sim"
             (velocity-travelling ((0 500)(-60 60)))
             (velocity-path-navigation ((0 500)(-60 60)))
             (velocity-following  ((0 1200)(-200 200)))
-            (current-room room-1)
-            (current-symbolic-position nil)
+            ;(nav-type "path") ; "free" or "path"
+            ;current-room room-1)
+            (current-room werk150)
+            (current-waypoint 19) ;Werk150-layout1
             (goalid 0)
             ;(base-component "ComponentRMPBaseServer" "basestate")
             (robotip "10.36.32.131")
             (state "INIT")
-            (default-nav-map "navigation-map")
-            (default-map "localization-map")
+            ;(default-nav-map "navigation-map")
+            ;(default-map "localization-map")
+            (default-nav-map "navigation-map-werk150-sim")
+            (default-map "localization-map-werk150-sim")
   	    (pick-distance (1000 650)); x, y in mm 
             (pick-orientation 180)
 		  )  
@@ -27,6 +32,13 @@
             (speech "zafh lab")
             (size (20000 20000))
             (offset (-10000 -10000))))
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name werk150)
+            (size (60000 30000))
+            (offset (-40000 -5000))))
 
 (tcl-kb-update 
   :key '(is-a name) 
@@ -91,3 +103,137 @@
             (orientation-region (angle-absolute 180))
             (orientation-exact (angle-absolute 180))
             (backward-dist 500)))
+#|
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type CHOCO)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 1)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type SPECIAL)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 2)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type FROSTIES)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 3)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type CORN-FLAKES)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 4)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type SMACKS)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 5)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type RATIOPHARM-IBU)
+	    	(rack-id Inclined_B)
+	    	(shelf-level 0)
+	    	(slot 1)
+          )
+)
+|#
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-RECT)
+	    	(rack-id Inclined_B)
+	    	(shelf-level 0)
+	    	(slot 1)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-CUBE)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 1)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-CUBE)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 2)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-CUBE)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 3)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-CUBE)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 4)
+          )
+)
+
+(tcl-kb-update 
+  :key '(is-a type) 
+  :value '( 
+          	(is-a object-class)
+            (type WHITE-BOX-CUBE)
+	    	(rack-id A-Frame)
+	    	(shelf-level 0)
+	    	(slot 5)
+          )
+)
+

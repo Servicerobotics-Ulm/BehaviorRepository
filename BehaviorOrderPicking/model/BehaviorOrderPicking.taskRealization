@@ -12,6 +12,6 @@ TaskRealizationModel BehaviorOrderPicking {
 	//navigation
 	AbstractCoordinationModuleInstance navigation coordModuleDef CommNavigationObjects.NavigationModule	
 	AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
-	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
-	
+	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule	
+
 }

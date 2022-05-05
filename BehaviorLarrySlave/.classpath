@@ -9,6 +9,6 @@
 	<classpathentry kind="src" path="/CommNavigationObjects"/>
 	<classpathentry kind="src" path="/CommObjectRecognitionObjects"/>
 	<classpathentry kind="src" path="/DomainPTU"/>
-	<classpathentry kind="src" path="/DomainVision"/>
+	<classpathentry kind="src" path="/DomainRobotFleetNavigation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

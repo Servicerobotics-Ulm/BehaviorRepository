@@ -37,6 +37,7 @@
             (orientation-exact (angle-absolute 0))
             (backward-dist 500)))
 
+
 ;; Location to pick items from Inclined-Shelf
 (tcl-kb-update 
   :key '(is-a name) 
@@ -56,6 +57,7 @@
             (orientation-region (angle-absolute 180))
             (orientation-exact (angle-absolute 180))
             (backward-dist 500)))
+
 
 ;; Location to pick items from A-frame
 (tcl-kb-update 

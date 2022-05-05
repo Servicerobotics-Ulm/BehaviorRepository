@@ -7,6 +7,8 @@
 		<project>CommLocalizationObjects</project>
 		<project>CommNavigationObjects</project>
 		<project>CommRobotinoObjects</project>
+		<project>CommTrackingObjects</project>
+		<project>DomainRobotFleetNavigation</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

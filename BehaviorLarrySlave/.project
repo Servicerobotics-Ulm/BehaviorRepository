@@ -10,7 +10,7 @@
 		<project>CommNavigationObjects</project>
 		<project>CommObjectRecognitionObjects</project>
 		<project>DomainPTU</project>
-		<project>DomainVision</project>
+		<project>DomainRobotFleetNavigation</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

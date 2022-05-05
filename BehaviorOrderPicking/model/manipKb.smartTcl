@@ -37,9 +37,9 @@
             (angles (4.63076 -2.14815 2.4906 -1.44829 -1.60092 -0.19797))
             (joint-time 2.0)))
 
-(tcl-kb-update 
-  :key '(is-a name) 
-  :value '( 
+(tcl-kb-update
+  :key '(is-a name)
+  :value '(
             (is-a manipulator-pose)
             (name picking-front)
             (gripper-before nil)

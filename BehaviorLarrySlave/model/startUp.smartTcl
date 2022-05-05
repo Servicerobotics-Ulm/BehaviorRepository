@@ -1,7 +1,7 @@
 (format t "Timo startUp ~%")
-(load-coordination-interface "FleetManagerCoordinationService" "/tmp/SystemWebotsLarrySlave.deployment/ComponentTCLSequencer_2_data")
+(load-coordination-interface "FleetManagerCoordinationService" ".")
 
-(read-coordination-module-system-file (format nil "~a/connections-ci-interface-test.json" "/tmp/SystemWebotsLarrySlave.deployment/ComponentTCLSequencer_2_data"))
+(read-coordination-module-system-file (format nil "~a/connections-ci-interface-test.json" "."))
 
 (instantiate-coordination-module "FleetManager" 'FleetManager)
 
@@ -14,10 +14,20 @@
 (tcl-kb-register-chained-entry :key '(is-a) :value `((is-a station)))
 (tcl-kb-register-chained-entry :key '(is-a) :value `((is-a rack)))
 (tcl-kb-register-chained-entry :key '(is-a) :value `((is-a object-class)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a dvgConfig)))
 
-;(execute '(gotoAnglesORN standby))
-;(execute '(ptuModule.ptuModule-moveptu default 0))
+;(execute '(manipulationModule.gotoAnglesOR 'name standby))
+;(execute '(ptuModule.moveptu absolute 0 0))
 
+;(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+;(execute '(localizationModInst.localizationSetRobotPose -7500 -550 1.57)) ;Werk150-layout1 path
+;(execute '(localizationModInst.localizationSetRobotPose -4629 6451 1.63)) ;Werk150-layout1 commissioning/free
+
+(execute '(localizationModInst.localizationSetRobotPose -2500 1000 1.57))
+
+(execute '(navPathClient.acquireInitialWaypoint))
+
+(execute '(tcb-update-robot-state 'IDLE))
 (execute '(FleetManager.waitForCommands))
 
 (format t "Timo startUp DONE!! ~%")

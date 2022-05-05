@@ -53,7 +53,7 @@
 	)
 	
 	(plan (
-		(goto rack2)
+		(goto rack2)		
 		(manipulationModule.gotoAnglesOR 'name picking-front)
 		(detectRackSim)
 		(showObjects)
@@ -77,7 +77,7 @@
 	)
 	
 	(plan (
-		(goto rack1)
+		(goto rack1)				
 		(manipulationModule.gotoAnglesOR 'name picking-left)		
 		(detectBoxesSim)
 		(showObjects)

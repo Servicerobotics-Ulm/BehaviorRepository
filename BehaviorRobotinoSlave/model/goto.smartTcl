@@ -5,3 +5,196 @@
 		(localizationModInst.tcb-deactivate-localization))
 	)
 )
+(define-tcb (tcb-job-go-to-position ?jobid ?goal-pose-id)
+  (rules (rule-abort-job-wrapper-error-abort))
+  (action (
+    (format t "=========================>>> tcb-job-go-to-position ~%")
+  ))
+  (plan (
+          (tcb-update-robot-state 'BUSY ?jobid)
+          (tcb-job-set-lc-state-RUNNING)
+          (tcb-update-running-job-state 'DRIVING)
+          (NAVIGATION.approachLocation ?goal-pose-id)
+          (tcb-update-running-job-state 'DRIVING-DONE)
+          ;(tcb-dock-to-charger-if-modelled) ;;TODO V3
+          (tcb-job-set-lc-state-FINISHED)
+          (tcb-update-robot-state 'IDLE))))
+
+
+(define-tcb (gotoPathNav ?jobid ?goal-pose-id)
+  ;(rules (rule-abort-job-wrapper-error-abort))
+  (action (
+    (format t "=========================>>> gotoPathNav ~%")
+  ))
+  (plan (
+          (tcb-update-robot-state 'BUSY ?jobid)
+          (tcb-job-set-lc-state-RUNNING)
+          (tcb-update-running-job-state 'DRIVING)
+          (navPathClient.gotoLocation ?goal-pose-id)
+          (tcb-update-running-job-state 'DRIVING-DONE)
+          ;(tcb-dock-to-charger-if-modelled) ;;TODO V3
+          (tcb-job-set-lc-state-FINISHED)
+          (tcb-update-robot-state 'IDLE)
+          )))
+
+(define-tcb (gotoPosition ?goal-pose-id ?nav-type)
+  (rules (rule-abort-job-wrapper-error-abort))
+  (action (
+    (format t "=========================>>> gotoPosition ~s ~s ~%" ?goal-pose-id ?nav-type)
+
+ 	(let (
+ 			(current-waypoint (get-value (tcl-kb-query :key '(is-a) :value '((is-a robot))) 'current-waypoint))
+ 		 )
+ 		 
+        (format t "CURRENT-WAYPOINT: ~s ~%" current-waypoint)
+
+	    (cond
+	    	((string-equal ?nav-type "free")
+	    	
+	    	        (if (not current-waypoint)
+                        
+                        ;if nil
+                        (tcl-push-back-plan :plan 
+                            `(
+                                (free-free ?goal-pose-id)
+                             )	
+                        )
+                        
+                        ;if not nil
+                        (tcl-push-back-plan :plan 
+                            `(
+                                (path-free ?goal-pose-id)
+                             )	
+                        )
+                    )
+	    	)
+
+	    	((string-equal ?nav-type "path")
+
+	    	        (if (not current-waypoint)
+                        
+                        ;if nil
+                        (tcl-push-back-plan :plan 
+                            `(
+                                (free-path ?goal-pose-id)
+                             )	
+                        )
+                        
+                        ;if not nil
+                        (tcl-push-back-plan :plan 
+                            `(
+                                (path-path ?goal-pose-id)
+                             )	
+                        )
+                    )
+	    	)
+
+	    	(T
+	    		(format t "Invalid nav-type! ~%")
+	    	)
+
+	    )
+
+    )
+
+  ))
+)
+
+(define-tcb (gotoPositionJob ?jobid ?goal-pose-id ?nav-type)
+  (rules (rule-abort-job-wrapper-error-abort))
+  (action (
+    (format t "=========================>>> gotoPositionJob ~s ~s ~%" ?goal-pose-id ?nav-type)
+
+    (tcl-push-back-plan :plan 
+		`(
+	        (tcb-update-robot-state 'BUSY ?jobid)
+	        (tcb-job-set-lc-state-RUNNING)
+	        (tcb-update-running-job-state 'DRIVING)
+	        
+	        (gotoPosition ?goal-pose-id ?nav-type)
+	        
+	        (tcb-update-running-job-state 'DRIVING-DONE)
+			(tcb-job-set-lc-state-FINISHED)
+			(tcb-update-robot-state 'IDLE)
+		 )	
+ 	)
+  ))
+)
+
+
+(define-tcb (free-free ?goal-pose-id)
+  (action (
+    (format t "=========================>>> free-free ~s ~%" ?goal-pose-id)
+  ))
+  (plan (
+    (NAVIGATION.approachLocation ?goal-pose-id)
+)))
+
+(define-tcb (path-path ?goal-pose-id)
+  (action (
+    (format t "=========================>>> path-path ~s ~%" ?goal-pose-id)
+  ))
+  (plan (
+    (navPathClient.gotoLocation ?goal-pose-id)
+)))
+
+(define-tcb (path-free ?goal-pose-id)
+  (action (
+    (format t "=========================>>> path-free ~s ~%" ?goal-pose-id)
+  ))
+  (plan (
+    (navPathClient.freeCurrentWaypoint)
+    (NAVIGATION.approachLocation ?goal-pose-id)
+)))
+
+(define-tcb (free-path ?goal-pose-id)
+  (action (
+    (format t "=========================>>> free-path ~s ~%" ?goal-pose-id)
+  ))
+  (plan (
+    (BASE.getBasePose => ?x ?y ?yaw)
+    (navPathClient.queryClosestFreeNode ?x ?y => ?node ?xl ?yl)
+    (navPathClient.acquireWaypoint ?node)
+    (createLocationFromWaypointAndApproach ?node ?xl ?yl)
+    (navPathClient.setWaypoint ?node) ;this is only true if the previous approachLocation was successful
+    (navPathClient.freeWaypoint ?node)
+    (navPathclient.setCurrentGoalId)
+    (navPathClient.gotoLocation ?goal-pose-id)
+)))
+
+(define-tcb (createLocationFromWaypointAndApproach ?node ?xl ?yl)
+  (action (
+  
+   (format t "=========================>>> createLocationFromWaypoint ~s/~s/~s ~%" ?node ?xl ?yl)
+   
+   (let*(
+         (node ?node)
+         (x ?xl) 
+         (y ?yl)
+         (name (format nil "~a~a" (get-value (tcl-kb-query :key '(is-a) :value '((is-a robot))) 'name) node))
+        )
+        (format t "name is ~s ~%" name)
+        (tcl-kb-update 
+                :key '(is-a name) 
+                :value `( 
+                    (is-a location)
+                    (name ,name)
+                    (approach-type (region))
+                    (approach-region-pose (,x ,y 0))
+                    (approach-region-dist 75)
+                    (approach-exact-pose (,x ,y 0))
+                    (approach-exact-dist 50)
+                    (approach-exact-safetycl 0)
+                    (orientation-region (angle-absolute 0))
+                    (orientation-exact (angle-absolute 0))
+                )
+        )
+     (show-locations)
+     (tcl-push-back-plan :plan 
+		`(
+ 	 		(NAVIGATION.approachLocation ,name)
+		 )	
+ 	 )
+ 	)
+  ))
+)

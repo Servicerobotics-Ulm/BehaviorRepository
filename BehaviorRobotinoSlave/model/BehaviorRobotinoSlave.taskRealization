@@ -11,4 +11,10 @@ TaskRealizationModel BehaviorRobotinoSlave {
 	
 	AbstractCoordinationModuleInstance robotDocking coordModuleDef CommNavigationObjects.RobotDockingModule 
 	
+	AbstractCoordinationModuleInstance ir coordModuleDef CommBasicObjects.IRGenerationModule
+	
+	AbstractCoordinationModuleInstance personFollowing coordModuleDef CommTrackingObjects.PersonFollowingModule 
+	AbstractCoordinationModuleInstance webInterface coordModuleDef CommBasicObjects.HLInterface
+	
+	AbstractCoordinationModuleInstance navPathClient coordModuleDef DomainRobotFleetNavigation.navPathClient 
 }

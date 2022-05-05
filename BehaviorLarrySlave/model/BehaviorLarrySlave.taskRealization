@@ -12,4 +12,5 @@ TaskRealizationModel BehaviorLarrySlave {
 	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
 	
 	AbstractCoordinationModuleInstance seq2seq coordModuleDef CommBasicObjects.Seq2SeqModule 
+	AbstractCoordinationModuleInstance navPathClient coordModuleDef DomainRobotFleetNavigation.navPathClient 
 }
