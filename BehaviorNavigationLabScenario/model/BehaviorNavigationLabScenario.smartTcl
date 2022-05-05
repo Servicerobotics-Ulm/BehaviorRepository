@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SCENARIO MEMORY
 
-#| 
+
 (tcl-kb-update 
   :key '(is-a name) 
   :value '( 
@@ -67,7 +67,7 @@
             (orientation-region (position 1500 -5300))
             (orientation-exact (position 1500 -5300))
             (backward-dist 500)))
-|#
+
 
 (tcl-kb-update 
   :key '(is-a name) 
