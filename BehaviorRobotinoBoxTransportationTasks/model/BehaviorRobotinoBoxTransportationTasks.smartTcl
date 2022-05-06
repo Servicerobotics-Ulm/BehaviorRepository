@@ -71,7 +71,7 @@
 	))
 	(plan (
 
-		(MPS.tcb-mps-station-unload-belts ?stationId)
+		(MPS.tcb-mps-station-unload ?stationId)
 	))
 )
 
