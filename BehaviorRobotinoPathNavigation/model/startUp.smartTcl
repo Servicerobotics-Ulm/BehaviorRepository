@@ -1,0 +1,45 @@
+(format t "Timo startUp ~%")
+;(load-coordination-interface "FleetManagerCoordinationService" ".")
+
+;(read-coordination-module-system-file (format nil "~a/connections-ci-interface-test.json" "."))
+
+;(instantiate-coordination-module "FleetManager" 'FleetManager)
+
+;(execute '(tcbStartup))
+
+(execute '(FleetManager.addRobotToFleetRequest))
+(execute '(FleetManager.addRobotToFleet))
+
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a location)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a station)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a station-type)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a rack)))
+(tcl-kb-register-chained-entry :key '(is-a) :value `((is-a object-class)))
+
+;(execute '(gotoAnglesORN standby))
+;(execute '(ptuModule.ptuModule-moveptu default 0))
+
+;(execute '(localizationModInst.localizationSetRobotPose -1340 240 0))
+;(execute '(localizationModInst.localizationSetRobotPose -1600 600 0)) ; real
+;(execute '(localizationModInst.localizationSetRobotPose -1300 0 0)) ; ZAFH.wbt
+;(execute '(localizationModInst.localizationSetRobotPose 1350 1148 0)) ;PathNavigation.wbt
+; (execute '(localizationModInst.localizationSetRobotPose 1535 1393 0)) ;PathNavigation.wbt
+
+; see SystemWebotsRobotinoSlave/configuration-script.sh
+; echo -e "(execute '(localizationModInst.localizationSetRobotPose $start1))" >> SystemWebotsRobotinoSlave_1.deployment/behaviorFiles/startUp.smartTcl
+; echo -e "(tcl-kb-update :key '(is-a name) :value \`((is-a robot)(name 1)(current-waypoint $location1)))" >> SystemWebotsRobotinoSlave_1.deployment/behaviorFiles/startUp.smartTcl
+; echo -e "(tcl-kb-update :key '(is-a name) :value \`((is-a robot)(name $i)(current-waypoint $location)))" >> behaviorFiles/startUp.smartTcl
+
+
+; initial position of robot: [mm] [mm] [radians?]
+
+(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+(tcl-kb-update :key '(is-a name) :value `((is-a robot)(name 1)(current-waypoint 1)))
+
+(execute '(navPathClient.acquireInitialSymbolicLocation))
+
+(execute '(tcb-update-robot-state 'IDLE))
+(execute '(FleetManager.waitForCommands))
+
+(format t "Timo startUp DONE!! ~%")
+

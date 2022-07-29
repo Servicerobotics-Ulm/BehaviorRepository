@@ -1,0 +1,23 @@
+TaskRealizationModel BehaviorRobotinoPathNavigation { 
+	
+	AbstractCoordinationModuleInstance navigation coordModuleDef CommNavigationObjects.NavigationModule
+	AbstractCoordinationModuleInstance kbModInst coordModuleDef CommBasicObjects.KBModule
+	AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
+	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
+	
+	AbstractCoordinationModuleInstance MPS coordModuleDef CommRobotinoObjects.MPSModule    
+	
+	AbstractCoordinationModuleInstance seq2seq coordModuleDef CommBasicObjects.Seq2SeqModule
+	
+	AbstractCoordinationModuleInstance robotDocking coordModuleDef CommNavigationObjects.RobotDockingModule   
+	
+	AbstractCoordinationModuleInstance ir coordModuleDef CommBasicObjects.IRGenerationModule
+	
+	AbstractCoordinationModuleInstance personFollowing coordModuleDef CommTrackingObjects.PersonFollowingModule 
+	AbstractCoordinationModuleInstance webInterface coordModuleDef CommBasicObjects.HLInterface
+	
+	AbstractCoordinationModuleInstance navPathClient coordModuleDef DomainRobotFleetNavigation.navPathClient 
+	
+	AbstractCoordinationModuleInstance fleetManager coordModuleDef DomainRobotFleet.FleetManager
+	
+} 

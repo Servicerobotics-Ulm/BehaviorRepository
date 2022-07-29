@@ -1,0 +1,211 @@
+(realize-tcb (collectBoxFromStation ?stationId ?beltId ?nav-type)
+	(action (
+
+		(format t "collectBoxFromStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+
+		(let* (
+			  (station (tcl-kb-query :key '(is-a id) :value '( (is-a station) (id ?stationId))))
+			  (station-type (get-value station 'type))
+			  (waypoint (get-value station 'approach-waypoint))
+			  (location (get-value station 'approach-location))
+			  (current-waypoint (get-value (tcl-kb-query :key '(is-a) :value '((is-a robot))) 'current-waypoint))	
+			 )
+		        (format t "CURRENT-WAYPOINT: ~s ~%" current-waypoint)
+
+			    (cond
+			    	((string-equal ?nav-type "free")
+			    	
+			    	        (if (not current-waypoint)
+		                        
+		                        ;if nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (free-free ,location)
+		                             )	
+		                        )
+		                        
+		                        ;if not nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (path-free ,location)
+		                             )	
+		                        )
+		                    )
+			    	)
+
+			    	((string-equal ?nav-type "path")
+
+			    	        (if (not current-waypoint)
+		                        
+		                        ;if nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (free-path ,waypoint)
+		                             )	
+		                        )
+		                        
+		                        ;if not nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (path-path ,waypoint)
+		                             )	
+		                        )
+		                    )
+			    	)
+
+			    	(T
+			    		(format t "Invalid nav-type! ~%")
+			    	)
+
+			    )
+
+		        (cond
+              		((equal station-type 'MANUAL-STATION)
+
+		            	(tcl-push-back-plan :plan 
+		             		`(
+								(MPS.tcb-manual-load)
+		    			 	)
+		    			)	
+             		)
+              	
+              		(T 
+              			(tcl-push-back-plan :plan 
+             				`(
+								(MPS.tcb-mps-station-dock ?stationId ?beltId)
+								(MPS.tcb-mps-station-load ?stationId)
+								(MPS.tcb-mps-station-undock-mps)
+    			 			)	
+             			)
+              		)
+              	)
+		)
+
+	))
+)
+
+(realize-tcb (deliverBoxToStation ?stationId ?beltId ?nav-type)
+	(action (
+
+		(format t "deliverBoxToStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+
+		(let* (
+			  (station (tcl-kb-query :key '(is-a id) :value '( (is-a station) (id ?stationId))))
+			  (station-type (get-value station 'type))
+			  (waypoint (get-value station 'approach-waypoint))
+			  (location (get-value station 'approach-location))
+			  (current-waypoint (get-value (tcl-kb-query :key '(is-a) :value '((is-a robot))) 'current-waypoint))			 	
+			 )
+
+			    (cond
+			    	((string-equal ?nav-type "free")
+			    	
+			    	        (if (not current-waypoint)
+		                        
+		                        ;if nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (free-free ,location)
+		                             )	
+		                        )
+		                        
+		                        ;if not nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (path-free ,location)
+		                             )	
+		                        )
+		                    )
+			    	)
+
+			    	((string-equal ?nav-type "path")
+
+			    	        (if (not current-waypoint)
+		                        
+		                        ;if nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (free-path ,waypoint)
+		                             )	
+		                        )
+		                        
+		                        ;if not nil
+		                        (tcl-push-back-plan :plan 
+		                            `(
+		                                (path-path ,waypoint)
+		                             )	
+		                        )
+		                    )
+			    	)
+
+			    	(T
+			    		(format t "Invalid nav-type! ~%")
+			    	)
+
+			    )
+
+		        (cond
+              		((equal station-type 'MANUAL-STATION)
+
+		            	(tcl-push-back-plan :plan 
+		             		`(
+								(MPS.tcb-manual-unload)
+		    			 	)
+		    			)	
+             		)
+              	
+              		(T 
+              			(tcl-push-back-plan :plan 
+             				`(
+								(MPS.tcb-mps-station-dock ?stationId ?beltId)
+								(MPS.tcb-mps-station-unload ?stationId)
+								(MPS.tcb-mps-station-undock-mps)
+    			 			)	
+             			)
+              		)
+              	)
+		)
+
+	))
+)
+
+(define-tcb (tcb-job-deliver-from-to ?jobid ?from-station-id ?from-belt ?to-station-id ?to-belt ?nav-type)
+  ;(rules (rule-abort-job-wrapper-error-abort rule-deliver-from-to-mps-station-failed))
+  (action (
+    (format t "=========================>>> tcb-job-deliver-from-to ~%")))
+  (plan ( (tcb-update-robot-state 'BUSY ?jobid)
+          (tcb-job-set-lc-state-RUNNING)
+          (collectBoxFromStation ?from-station-id ?from-belt ?nav-type)
+          (deliverBoxToStation ?to-station-id ?to-belt ?nav-type)
+          (tcb-job-set-lc-state-FINISHED)
+          (tcb-update-robot-state 'IDLE)
+        )
+  )
+)
+
+(define-tcb (tcb-job-collect-from ?jobid ?from-station-id ?from-belt ?nav-type)
+  ;(rules (rule-abort-job-wrapper-error-abort rule-deliver-from-to-mps-station-failed))
+  (action (
+    (format t "=========================>>> tcb-job-collect-from ~%")))
+  (plan ( (tcb-update-robot-state 'BUSY ?jobid)
+          (tcb-job-set-lc-state-RUNNING)
+          (collectBoxFromStation ?from-station-id ?from-belt ?nav-type)
+          (tcb-job-set-lc-state-FINISHED)
+          (tcb-update-robot-state 'IDLE)
+        )
+  )
+)
+
+
+(define-tcb (tcb-job-deliver-to ?jobid ?to-station-id ?to-belt ?nav-type)
+  ;(rules (rule-abort-job-wrapper-error-abort rule-deliver-from-to-mps-station-failed))
+  (action (
+    (format t "=========================>>> tcb-job-deliver-to ~%")))
+  (plan ( (tcb-update-robot-state 'BUSY ?jobid)
+          (tcb-job-set-lc-state-RUNNING)
+          (deliverBoxToStation ?to-station-id ?to-belt ?nav-type)
+          (tcb-job-set-lc-state-FINISHED)
+          (tcb-update-robot-state 'IDLE)
+        )
+  )
+)

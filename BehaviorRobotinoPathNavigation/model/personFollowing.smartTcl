@@ -1,0 +1,17 @@
+;person-following
+;(execute '(webInterface.waitForCommand))
+;(execute '(personFollowing.detectPersons))
+;(execute '(personFollowing.followPerson))
+;(execute '(personFollowing.stopPersonFollowing))
+(realize-tcb (followPerson)
+
+	(action (
+    	(format t "=========================>>> followPerson ~%")
+    ))
+
+    (plan(
+	       	(webInterface.waitForCommand)
+		)
+	)
+
+)
