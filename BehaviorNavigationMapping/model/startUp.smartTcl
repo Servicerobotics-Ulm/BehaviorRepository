@@ -44,7 +44,7 @@
      (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
      (format t "Enter location name: ~%")
      (setf locations-var (string-upcase (read-line nil)))
-     (setf locations-var (intern locations-var))
+     (setf locations-var (read-from-string locations-var))
      (format t "your choice: ~a ~%" locations-var)
        (execute '(localizationModInst.tcb-activate-localization))
        (execute `(navigation.approachLocation,locations-var))
