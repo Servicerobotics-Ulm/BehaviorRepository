@@ -5,12 +5,14 @@
 
 ;; MENU
 (defvar nmbr nil)
+(defvar locations-var nil)
 
 (defun menu()
   (execute '(navigation.initNavigation))
   (execute '(navigation.loadNavigationMap "navigation-map"))
-  (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
-  
+  (execute '(localizationModInst.tcb-activate-localization))
+;;  (execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+
 (loop
 
   (let ((known-rooms (tcl-kb-query-all :key '(is-a) :value '((is-a room))))
@@ -34,21 +36,24 @@
      (format t "~%~{~/format-rooms/~^, ~}~%~%" known-rooms)
      (format t "Enter room name: ~%")
      (setf room-var (string-upcase (read-line nil)))
-     (setf room-var (intern room-var))
+     (setf room-var (read-from-string room-var))
      (format t "your choice: ~a ~%" (type-of room-var))     
-     (execute '(localizationModInst.tcb-activate-localization))
+;     (execute '(localizationModInst.tcb-activate-localization))
      (execute `(navigation.approachRoom ,room-var))     
-     (execute '(localizationModInst.tcb-deactivate-localization)))
+;     (execute '(localizationModInst.tcb-deactivate-localization))
+    )
     ((equal nmbr 2)
      (format t "Approach location - known locations: ~%")
      (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
      (format t "Enter location name: ~%")
-     (setf locations-var (string-upcase (read-line nil)))
-     (setf locations-var (intern locations-var))
+     ; (setf locations-var (string-upcase (read-line nil)))
+     ; (setf locations-var (intern locations-var))
+     (setf locations-var (read-from-string (read-line nil)))
      (format t "your choice: ~a ~%" locations-var)
-       (execute '(localizationModInst.tcb-activate-localization))
+;       (execute '(localizationModInst.tcb-activate-localization))
        (execute `(navigation.approachLocation,locations-var))
-       (execute '(localizationModInst.tcb-deactivate-localization)))
+;       (execute '(localizationModInst.tcb-deactivate-localization))
+    )
     ((equal nmbr 3)
      (show-rooms))
     ((equal nmbr 4)
