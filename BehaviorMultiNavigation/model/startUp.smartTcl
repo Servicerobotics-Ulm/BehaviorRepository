@@ -1,0 +1,67 @@
+(format t "INIT DONE ~%")
+
+(defun format-locations (s obj colonmod at-sign) (declare (ignore colonmod)) (declare (ignore at-sign)) (format s "~s" (get-value obj 'name)))
+
+;; MENU
+(defvar nmbr nil)
+(defvar locations-var nil)
+
+
+(defun menu()
+  (format t "robot 1: navigation_1.initNavigation, navigation_1.loadNavigationMap navigation-map~%")
+  (execute '(navigation_1.initNavigation))
+  (execute '(navigation_1.loadNavigationMap "navigation-map"))
+  (format t "robot 2: navigation_2.initNavigation, navigation_2.loadNavigationMap navigation-map~%")
+  (execute '(navigation_2.initNavigation))
+  (execute '(navigation_2.loadNavigationMap "navigation-map"))
+;; turn on SmartAmcl (change state to active)
+  (execute '(localizationModInst_1.tcb-activate-localization))
+  (execute '(localizationModInst_2.tcb-activate-localization))
+;; use system parameters SmartAmcl/general/initial_* to set initial pose of robot (or webots editor)
+;; (side effect of localizationSetRobotPose: change state of SmartAmcl to active)
+;; (execute '(localizationModInst1.localizationSetRobotPose 0 0 0))
+  
+(loop
+
+  (format t "~%MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t "  1 - Approach location by Robot 1~%")
+  (format t "  2 - Approach location by Robot 2~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t "  3 - Show locations ~%")
+  (format t " 99 - quit menu ~%")
+  (format t "  0 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  (format t "your choice: ~d ~%" nmbr)
+
+  (let ((known-locations (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+  
+  (cond
+    ((equal nmbr 1)
+     (format t "Approach location - known locations: ~%")
+     (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
+     (format t "Enter location name: ~%")
+     (setf locations-var (string-upcase (read-line nil)))
+     (setf locations-var (read-from-string locations-var))
+     (format t "your choice: ~a ~%" locations-var)
+       (execute `(navigation_1.approachLocation,locations-var))
+     )
+    ((equal nmbr 2)
+     (format t "Approach location - known locations: ~%")
+     (format t "~%~{~/format-locations/~^, ~}~%~%" known-locations)
+     (format t "Enter location name: ~%")
+     (setf locations-var (string-upcase (read-line nil)))
+     (setf locations-var (read-from-string locations-var))
+     (format t "your choice: ~a ~%" locations-var)
+       (execute `(navigation_2.approachLocation,locations-var))
+     )
+    ((equal nmbr 3)
+     (show-locations))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit))))))
+
+(menu)

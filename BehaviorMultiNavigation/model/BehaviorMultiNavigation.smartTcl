@@ -1,0 +1,66 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCENARIO MEMORY
+
+;; TODO: add two robots, change SmartCdlServer.smartTcl etc.
+;; from (tcl-kb-query :key '(is-a) :value '((is-a robot)))
+;; to (tcl-kb-query :key '(is-a name) :value '((is-a robot)(name ?robotName)))
+;; (add parameter or global variable)
+;; OR move these parameters into SmartCdl
+;; OR use for each robot TclSequencer/ComponentKB, use ComponentMaster
+
+(tcl-kb-update 
+  :key '(is-a name)
+  :value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name room-1)
+            (speech "room 1")
+            (size (20000 20000))
+            (offset (-10000 -10000))))
+            
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
+
+
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :key '(is-a) :value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+
+
+;; SCENARIO MEMORY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
