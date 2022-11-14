@@ -33,8 +33,11 @@
 
 ; initial position of robot: [mm] [mm] [radians?]
 
-(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
-(tcl-kb-update :key '(is-a name) :value `((is-a robot)(name 1)(current-waypoint 1)))
+; get initial position from webots
+;(execute '(localizationModInst.localizationSetRobotPose 0 0 0))
+(execute '(localizationModInst.tcb-activate-localization))
+
+(tcl-kb-update :key '(is-a name) :value `((is-a robot)(name 1)(current-waypoint nil)))
 
 (execute '(navPathClient.acquireInitialSymbolicLocation))
 
