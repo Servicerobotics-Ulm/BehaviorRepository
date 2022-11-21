@@ -7,8 +7,8 @@
   (plan(
     (navigation.initNavigation)
     (navigation.loadNavigationMap "navigation-map")
-    (localizationModInst.tcb-load-localization-map "localization-map.yaml")
-    (localizationModInst.tcb-trigger-global-localization)
+;    (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+;    (localizationModInst.tcb-trigger-global-localization)
     (localizationModInst.localizationSetRobotPose 0 0 0)
     )
   )  
