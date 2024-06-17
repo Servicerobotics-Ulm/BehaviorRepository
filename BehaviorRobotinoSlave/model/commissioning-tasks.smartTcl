@@ -24,15 +24,20 @@
            (docking-waypoint (get-value job 'docking-waypoint))
          )
       (format t "Job id:~s order:~a ~%" (get-value job 'id) (get-value job 'commission-order))
-	  (cond
-	  	((equal docking-waypoint -1)
-	  		(setf nav-type "free")
-	  	)
-	  	
-	  	(T
-	  		(setf nav-type "path")
-	  	)
-	  )
+
+      (format t "docking-waypoint ~s ~%" docking-waypoint)
+
+	   	  (cond
+	   	    ((equal docking-waypoint nil)
+	   	      (setf nav-type "free")
+			)
+			((= docking-waypoint -1)
+				(setf nav-type "free")
+			)
+			((>= docking-waypoint 0)
+				(setf nav-type "path")			
+			)
+		 )
 	  
 	  (format t "nav-type: ~a ~%" nav-type)
 
@@ -132,32 +137,42 @@
   (action (
     (format t "=========================>>> tcb-perform-commissioning-one-station  id: ~a ~%" ?jobid)
     (let ((job (tcl-kb-query :key '(is-a id) :value `((is-a job)(id ?jobid)))))
-    	(cond
-    		((equal (get-value job 'docking-waypoint) -1)
-      (tcl-push-back-plan :plan `(
-        (tcb-wait-for-manipulation-robot-pose => ?location)
-        (NAVIGATION.approachLocation ?location)
-			   	 )
+    
+		(cond
+			((equal (get-value job 'docking-waypoint) nil)
+				(tcl-push-back-plan :plan 
+					`(
+						(tcb-wait-for-manipulation-robot-pose => ?location)
+						(NAVIGATION.approachLocation ?location)
+				  	 )
 				)
-		    )
-		    
-		    (T
-		    	(tcl-push-back-plan :plan `(
-					(navPathClient.gotoLocation ,(get-value job 'docking-waypoint))
-			   	 )
+			)
+			((= (get-value job 'docking-waypoint) -1)
+				(tcl-push-back-plan :plan 
+					`(
+						(tcb-wait-for-manipulation-robot-pose => ?location)
+						(NAVIGATION.approachLocation ?location)
+				  	 )
 				)
-		    )
-        )
+			)
+			((>= (get-value job 'docking-waypoint) 0)
+				(tcl-push-back-plan :plan 
+					`(
+						(navPathClient.gotoLocation ,(get-value job 'docking-waypoint))
+				   	 )
+				)		
+			)
+		)
     
 		(tcl-push-back-plan :plan `(
-        (robotDocking.dockToRobot)
-        (SEQ2SEQ.tcb-send-transportion-robot-docked)
-        (tcb-wait-for-manipulation-robot-station-done)
-        (tcb-reset-sync-vars)
-        (robotDocking.undockFromRobot)
-        (SEQ2SEQ.tcb-send-transportion-robot-undocked)
-       )
-     )
+		    (robotDocking.dockToRobot)
+		    (SEQ2SEQ.tcb-send-transportion-robot-docked)
+		    (tcb-wait-for-manipulation-robot-station-done)
+		    (tcb-reset-sync-vars)
+		    (robotDocking.undockFromRobot)
+		    (SEQ2SEQ.tcb-send-transportion-robot-undocked)
+		   )
+		)
     )
 )))
 

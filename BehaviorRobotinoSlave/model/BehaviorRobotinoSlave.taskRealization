@@ -9,7 +9,7 @@ TaskRealizationModel BehaviorRobotinoSlave {
 	
 	AbstractCoordinationModuleInstance seq2seq coordModuleDef CommBasicObjects.Seq2SeqModule
 	
-	AbstractCoordinationModuleInstance robotDocking coordModuleDef CommNavigationObjects.RobotDockingModule 
+	AbstractCoordinationModuleInstance robotDocking coordModuleDef CommNavigationObjects.RobotDockingModule   
 	
 	AbstractCoordinationModuleInstance ir coordModuleDef CommBasicObjects.IRGenerationModule
 	
@@ -17,4 +17,5 @@ TaskRealizationModel BehaviorRobotinoSlave {
 	AbstractCoordinationModuleInstance webInterface coordModuleDef CommBasicObjects.HLInterface
 	
 	AbstractCoordinationModuleInstance navPathClient coordModuleDef DomainRobotFleetNavigation.navPathClient 
-}
+	
+} 

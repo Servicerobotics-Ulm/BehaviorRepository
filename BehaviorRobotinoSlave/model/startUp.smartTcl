@@ -21,9 +21,9 @@
 
 ;(execute '(localizationModInst.localizationSetRobotPose -1340 240 0))
 ;(execute '(localizationModInst.localizationSetRobotPose -1600 600 0)) ; real
-(execute '(localizationModInst.localizationSetRobotPose -1300 0 0)) ; ZAFH.wbt
+;(execute '(localizationModInst.localizationSetRobotPose -1300 0 0)) ; ZAFH.wbt
 ;(execute '(localizationModInst.localizationSetRobotPose 1350 1148 0)) ;PathNavigation.wbt
-;(execute '(localizationModInst.localizationSetRobotPose 1535 1393 0)) ;PathNavigation.wbt
+(execute '(localizationModInst.localizationSetRobotPose 1535 1393 0)) ;PathNavigation.wbt
 
 (execute '(navPathClient.acquireInitialSymbolicLocation))
 

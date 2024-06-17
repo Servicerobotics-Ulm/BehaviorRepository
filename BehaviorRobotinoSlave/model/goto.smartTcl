@@ -5,6 +5,7 @@
 		(localizationModInst.tcb-deactivate-localization))
 	)
 )
+
 (define-tcb (tcb-job-go-to-position ?jobid ?goal-pose-id)
   (rules (rule-abort-job-wrapper-error-abort))
   (action (

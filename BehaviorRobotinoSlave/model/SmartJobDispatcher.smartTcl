@@ -215,6 +215,8 @@
 
                       (tcl-push-back-plan :plan `( (tcb-job-deliver-to ,jobid ,to-station-id ,to-belt ,nav-type)))))                    
 
+                
+
                     ;; PushJob GotoPosition JOBID PRIORITY ROBOTINOID POSE
                     ((equal (second request) 'GotoPosition)
                       (multiple-value-bind (jobtype jobid jobpriority robotid goal-pose nav-type) 
@@ -1061,6 +1063,7 @@
 
 
 (defun update-robot-state (&key (state nil state-supplied-p) (sub-state nil sub-state-supplied-p) (performs-task nil performs-task-supplied-p) (box-loaded nil box-loaded-supplied-p) (mode nil mode-supplied-p) (is-docked nil is-docked-supplied-p) (is-job-on-time nil is-job-on-time-p))
+    
     (tcl-kb-update :key '(is-a) :value `(
                                         (is-a robot) 
                                         ,(if state-supplied-p `(state ,state))
@@ -1282,4 +1285,5 @@
     (format t "=========================>>> RULE: rule-abort-job-error-ack (ERROR (TASK ABBORT))  ~%")
     (tcl-delete-plan)
     '(ERROR (TASK ABBORT)))))
+
 
