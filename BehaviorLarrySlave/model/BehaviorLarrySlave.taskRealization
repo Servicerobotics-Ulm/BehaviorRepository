@@ -1,8 +1,8 @@
-TaskRealizationModel BehaviorLarrySlave {
+TaskRealizationModel BehaviorLarrySlave { 
+	
+	AbstractCoordinationModuleInstance kbModule coordModuleDef CommBasicObjects.KBModule 
 
-	AbstractCoordinationModuleInstance kbModule coordModuleDef CommBasicObjects.KBModule
-
-	AbstractCoordinationModuleInstance ptuModule coordModuleDef DomainPTU.ptuModule
+	AbstractCoordinationModuleInstance ptuModule coordModuleDef DomainPTU.ptuModule   
 	AbstractCoordinationModuleInstance boxDetectionModule coordModuleDef CommObjectRecognitionObjects.objRecognitionModule
 	AbstractCoordinationModuleInstance rackDetectionModule coordModuleDef CommObjectRecognitionObjects.objRecognitionModule
 	AbstractCoordinationModuleInstance manipulationModule coordModuleDef CommManipulationPlannerObjects.manipulationPlannerModule
@@ -12,5 +12,7 @@ TaskRealizationModel BehaviorLarrySlave {
 	AbstractCoordinationModuleInstance base coordModuleDef CommNavigationObjects.MobileBaseModule
 	
 	AbstractCoordinationModuleInstance seq2seq coordModuleDef CommBasicObjects.Seq2SeqModule 
+	
 	AbstractCoordinationModuleInstance navPathClient coordModuleDef DomainRobotFleetNavigation.navPathClient 
+	
 }

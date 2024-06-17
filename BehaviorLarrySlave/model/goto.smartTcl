@@ -5,6 +5,7 @@
 		(localizationModInst.tcb-deactivate-localization))
 	)
 )
+
 (define-tcb (gotoPosition ?goal-pose-id ?nav-type)
   (rules (rule-abort-job-wrapper-error-abort))
   (action (

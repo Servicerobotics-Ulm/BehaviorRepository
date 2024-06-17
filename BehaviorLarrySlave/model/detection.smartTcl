@@ -16,18 +16,19 @@
 
 			(let ( 
 					(env (get-value (tcl-kb-query :key '(is-a) :value `((is-a robot))) 'env))
-		)
+				 )
 					(cond 
 						((string-equal env "real")
 							(tcl-wiring-connect :clientComp "ComponentRackDetection_Larry" :wiringName "kinectQueryClient" :serverComp "ComponentKinectV2Server_Larry" :serverService "imageQueryV2Server")
-	)
-	
+						)
+
 						((string-equal env "sim")
 							(tcl-wiring-connect :clientComp "ComponentRackDetection_Larry" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera_Larry" :serverService "imageQueryServer")						)
 
 						(T 
 							(format t "wrong env type! ~%")
-)
+						)
+
 					)
 			)
 		)
@@ -58,19 +59,21 @@
 			
 			(let ( 
 					(env (get-value (tcl-kb-query :key '(is-a) :value `((is-a robot))) 'env))
-		)
+				 )
+
 				 (cond 
 					((string-equal env "real")
 						(tcl-wiring-connect :clientComp "ComponentKinectBoxDetection_Larry" :wiringName "kinectQueryClient" :serverComp "ComponentKinectV2Server_Larry" :serverService "imageQueryV2Server")
-	)
-	
+					)
+
 					((string-equal env "sim")
 						(tcl-wiring-connect :clientComp "ComponentKinectBoxDetection_Larry" :wiringName "kinectQueryClient" :serverComp "ComponentWebots3DCamera_Larry" :serverService "imageQueryServer")
-	      )
+					)
 					(T 
 						(format t "wrong env type! ~%")
-	)
-)
+					)
+
+				)
 
 
 			)
@@ -82,8 +85,8 @@
 		    (ptuModule.moveptu absolute 1.57 -0.65)
 			(rackDetectionModule.tcb-set-query-image)
 			(tcbSleep)
-			;(boxDetectionModule.setObjType RATIOPHARM-IBU)
-			(boxDetectionModule.setObjType WHITE-BOX-RECT)			
+			(boxDetectionModule.setObjType RATIOPHARM-IBU)
+			;(boxDetectionModule.setObjType WHITE-BOX-RECT)			
 			(boxDetectionModule.detectBoxes => ?envId ?objs)
 			(boxDetectionModule.storeObjects-bd ?objs)
 			(manipulationModule.loadEnvInOpenRave ?envId)

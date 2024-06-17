@@ -234,6 +234,7 @@
         (format t "=========================>>> mGotoPre:~%")
 	    (let* ( (obj-list (tcl-kb-query-all :key '(is-a envid type status) :value '((is-a object)(envid ?envID)(type ?objType)(status GRASPABLE))))
                 (count-graspable (length obj-list)))
+                
             (format t "count-graspable ~s ~%" count-graspable)    
             (cond
                 ((> count-graspable 0)
@@ -292,13 +293,14 @@
 										)
 
 				                    	((string-equal env "sim")
-				                      (tcl-push-plan :plan `(
-					                      (manipulationModule.gotoTCPOR ,pre-grasp-pose)
-					                      (manipulationModule.grasp ,(get-value obj 'id))
-					                      (manipulationModule.close)
-										  (manipulationModule.gotoAnglesOR 'name drop-to-robot)
-										  (manipulationModule.open)
-										  (manipulationModule.release ?graspedObjectId)
+
+					                      (tcl-push-plan :plan `(
+						                      (manipulationModule.gotoTCPOR ,pre-grasp-pose)
+						                      (manipulationModule.grasp ,(get-value obj 'id))
+						                      (manipulationModule.close)
+											  (manipulationModule.gotoAnglesOR 'name drop-to-robot)
+											  (manipulationModule.open)
+											  (manipulationModule.release ?graspedObjectId)
 											  (manipulationModule.delete ?graspedObjectId)
 											  
 					                    	)
@@ -307,8 +309,8 @@
 
 										(T 
 						    				(format t "wrong env type!~%")
-				                    	)
-				                      )
+						    	  		)										
+				                     )
 				                   )
 
 				                  (T 
@@ -324,6 +326,7 @@
 				                            (status GRASPED)
 				                        )
 				        )
+
 			        	'(SUCCESS ())
 		        	)
 		  		)
@@ -372,6 +375,7 @@
 	      		(format t "abort ~%")
 	      	)
 	      )
+
 	      (tcl-push-plan :plan `(
 				(manipulationModule.release ?graspedObjectId)
 				(manipulationModule.open)
@@ -406,7 +410,7 @@
                  )
 	      	)
 	      	((string-equal selected-type "rack")
-	      		
+	      	 
      	      	 (tcl-push-plan :plan `(
 						(detectRack)
 						(showObjects)

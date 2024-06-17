@@ -9,19 +9,25 @@
 
 	           (format t "JOB ~s~%" job)
 		   (format t "ORDER LIST ~s~%" order-list)
+		   
+	      (format t "docking-waypoint ~s ~%" docking-waypoint)
+	
+	   	  (cond
+	   	    ((equal docking-waypoint nil)
+	   	      (setf nav-type "free")
+			)
+			((= docking-waypoint -1)
+				(setf nav-type "free")
+			)
+			((>= docking-waypoint 0)
+				(setf nav-type "path")			
+			)
+		 )
 
-		   	  (cond
-	  			((equal docking-waypoint -1)
-	  				(setf nav-type "free")
-	  			)
-	  	
-	  			(T
-	  				(setf nav-type "path")
-	  			)
-	  		 )
 		   (tcl-push-plan :plan `(
                                           ;(tcb-gripper open)
                                   (manipulationModule.gotoAnglesOR 'name standby)
+                                  (ptuModule.moveptu absolute 0 0)
                        			  (SEQ2SEQ.tcb-run-commissioning ',order-list ,nav-type)
                        			  ;(tcb-run-commissioning ',order-list ,nav-type)
 			                  ;(tcb-finalize-commissioning-job ,id)

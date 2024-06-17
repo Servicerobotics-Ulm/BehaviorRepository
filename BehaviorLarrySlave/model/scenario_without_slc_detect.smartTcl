@@ -16,7 +16,7 @@
       (format t "Timo sorted-order-list ~a ~%" sorted-order-list)
       (dolist (stationOrder sorted-order-list)
         (tcl-push-back-plan :plan `( 
-               (tcb-update-running-job-state 'DRIVING)	
+               (tcb-update-running-job-state 'DRIVING)
                (SEQ2SEQ.tcb-send-job-next-station-to-transportation-robot)
 			 )
         )
@@ -51,7 +51,8 @@
                (tcb-wait-for-transportation-robot-undocked)
                (tcb-reset-sync-vars)
 			 )
-        )
+        )        
+                
       )
     )
 
@@ -930,6 +931,9 @@
 ;		     ;(tcl-push-plan :plan `( (tcb-approach-location ,(get-value rack 'location-id))))
 ;
 ;                     (tcl-bind-var :name '?locationId :value (get-value rack 'location-id))))))
+
+
+
 (define-tcb (getWaypointFromObjectType ?objType => ?waypoint)
   (action (
             (format t "=========================>>> getWaypointFromObjectType: ~a ~%" '?objType)
@@ -1067,6 +1071,7 @@
                                      ; Timo 25-03-22
                                      (approach-region-pose ,(get-value rack-location 'approach-region-pose)) 
                                      (approach-region-dist 75)
+
                                      ; Timo 25-03-22
                                      ;(orientation-region (angle-absolute ,(+ (nth 1 (get-value rack-location 'orientation-region)) (get-value robot 'pick-orientation))))
 									 (orientation-region ,(get-value rack-location 'orientation-region))
@@ -1084,6 +1089,7 @@
 
                      ;(tcl-bind-var :name '?locationId :value (get-value rack 'location-id))
                      (tcl-bind-var :name '?locationId :value pick-location-name)))))
+
 
 (defun show-locations ()
   (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
