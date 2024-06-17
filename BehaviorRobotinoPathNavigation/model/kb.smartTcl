@@ -33,7 +33,7 @@
             (current-room room-1)
             ;(current-symbolic-position 0)
             (goalid 0)
-            (robotip "10.36.32.130")
+            (robotip "10.36.32.121")
             (state "INIT")
             (default-nav-map "navigation-map")
             (default-map "localization-map")

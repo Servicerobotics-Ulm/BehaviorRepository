@@ -1,0 +1,271 @@
+TaskRealizationModelTCL {
+	AbstractCoordinationModuleInstance navigationInst      coordModuleDef CommNavigationObjects.NavigationModule
+	AbstractCoordinationModuleInstance kbModInst           coordModuleDef CommBasicObjects.KBModule
+	AbstractCoordinationModuleInstance localizationModInst coordModuleDef CommLocalizationObjects.LocalizationModule
+	AbstractCoordinationModuleInstance base                coordModuleDef CommNavigationObjects.MobileBaseModule
+;	AbstractCoordinationModuleInstance mpsInst             coordModuleDef CommRobotinoObjects.MPSModule
+	
+
+;	(define-task-block (transportationTask ?startStationID ?goalStationID)
+;		(taskDefinition CommNavigationObjects.transportationTask)
+;		 
+;		(action ( (format t "============= >>> transportationTask from:~s to:~s ~%" ?startStationID ?goalStationID)
+;			(let* 	((start-station (tcl-kb-query :kb-key '(is-a id) :kb-value `((is-a station)(id ?startStationID))))
+;	          		 (start-station-approach-location (get-value start-station 'approach-location))
+;	          		 (goal-station (tcl-kb-query :kb-key '(is-a id) :kb-value `((is-a station)(id ?goalStationID))))
+;	          		 (goal-station-approach-location (get-value goal-station 'approach-location)))
+;     			(tcl-push-plan :plan `(
+;      				(localizationModInst.activateLocalization)
+;				    (navigationInst.approachLocation ,start-station-approach-location)
+;				    (mpsInst.mps_station_fetch_from ?startStationID)
+;					(navigationInst.approachLocation ,goal-station-approach-location)
+;					(mpsInst.mps_station_push_to ?goalStationID)
+;					(localizationModInst.deactivateLocalization)))))))
+;					
+;	 (define-task-block (transportationTask ?startStationID ?goalStationID)
+;	 	(plan ( (transportationTask)))
+;	 )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SCENARIO MEMORY
+ 
+(tcl-kb-update 
+  :kb-key '(is-a name) 
+  :kb-value '( 
+            (is-a location)
+            (name home)
+            (speech "home position")
+            (approach-type (region))
+            (approach-region-pose (0 0 0))
+            (approach-region-dist 75)
+            (approach-exact-pose (0 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 1000 0))
+            (orientation-exact (position 1000 0))
+            (backward-dist 500)))
+
+
+(tcl-kb-update 
+  :kb-key '(is-a name) 
+  :kb-value '( 
+            (is-a location)
+            (name pose1)
+            (speech "pose-one")
+            (approach-type (region))
+            (approach-region-pose (-1000 2000 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (600 1700 0))
+            (approach-exact-dist 100)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 500 2000))
+            (orientation-exact (position 600 1900))
+            (backward-dist 500)))
+
+(tcl-kb-update 
+  :kb-key '(is-a name) 
+  :kb-value '( 
+            (is-a location)
+            (name pose2)
+            (speech "TWO")
+            (approach-region-pose (800 0 0))
+            (approach-region-dist 150)
+            (approach-exact-pose (1000 0 0))
+            (approach-exact-dist 50)
+            (approach-exact-safetycl 0)
+            (orientation-region (position 0 0))
+            (orientation-exact (position 0 0))
+            (backward-dist 500)))
+
+
+(tcl-kb-update 
+  :kb-key '(is-a name) 
+  :kb-value `(
+            (is-a robot)
+            (name 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :kb-key '(is-a name) 
+  :kb-value '(
+            (is-a room)
+            (name room-1)
+            (speech "zafh lab")
+            (size (250000 250000))
+            (offset (-50000 -50000))))
+
+
+
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :kb-key '(is-a) :kb-value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
+
+
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :kb-key '(is-a) :kb-value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; testTask
+
+; (execute '(navigationTestTask))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; REACTIVE NAV
+; (execute '(navigationInst.tcb-reactive-navigation))
+; (execute '(navigationInst.tcb-stop-reactive-navigation))
+
+;; JOYSTICK
+; (execute '(navigationInst.tcb-joystick-navigation))
+; (execute '(navigationInst.tcb-stop-joystick-navigation))
+;;
+; (execute '(localizationModInst.tcb-activate-localization))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
+;; (execute '(cameraInst.activateCameraPush))
+;; (execute '(cameraInst.activateCameraQuery))
+;; (execute '(cameraInst.deactivateCamera))
+
+;; (execute '(laserfromrgbdInst.activateLaserGenaration))
+;; (execute '(laserfromrgbdInst.dectivateLaserGenaration))
+
+
+
+(define-task-block (navigationTestTask)
+  (action (
+  ;	(tcl-module-wiring-connect :clientModule navigationInst :service CommBasicObjects.VisualizationModule.laser1 :serverModule  base :serverService CommBasicObjects.LaserGenarationModule.laser)
+  ;	(tcl-module-wiring-disconnect :clientModule base :service CommBasicObjects.VisualizationModule.laser1) 	
+            (format t "===== navigationTestTask~%")
+            (wring navigationInst laserInServer rgbdlaser laserOutServer) ))
+  (plan (
+          (navigationInst.tcb-init-navigation)
+          (navigationInst.tcb-load-navigation-map "navigation-map")
+
+          (localizationModInst.tcb-load-localization-map "localization-map.yaml")
+          (localizationModInst.tcb-trigger-global-localization)
+          (localizationModInst.tcb-set-robot-pose 0 0 0)
+
+          (localizationModInst.tcb-activate-localization)
+          (navigationInst.tcb-move-robot 'approach-region pose1)
+          (navigationInst.tcb-move-robot 'approach-exact pose1)
+          (navigationInst.tcb-move-robot 'backward pose1)
+          (navigationInst.tcb-move-robot 'backward-abs 100)
+          (navigationInst.tcb-move-robot 'plain 1000 0 100)
+          (navigationInst.tcb-move-robot 'orientate-region pose1)
+          (navigationInst.tcb-move-robot 'orientate-exact pose1)
+          (navigationInst.tcb-move-robot 'approach-region home)
+          (navigationInst.tcb-move-robot 'orientate-exact home)
+          (navigationInst.tcb-move-robot 'orientate-angle-absolute 45)
+          (navigationInst.tcb-move-robot 'orientate-angle-relative 135)
+          (navigationInst.tcb-move-robot 'orientate-angle-relative 180)
+          (navigationInst.tcb-approach-location pose1) ;region
+          (localizationModInst.tcb-deactivate-localization)
+
+          (base.getBasePose => ?x ?y ?yaw)
+          (base.getBaseCharging => ?charging)
+          (echoTask ?x ?y ?yaw ?charging))))
+			
+	(define-task-block (echoTask ?x ?y ?yaw ?charging)
+  		(action (	
+            (format t "===== echoTask: ~a ~a ~a ~a ~%" '?x '?y '?yaw '?charging))))
+		
+		
+;; testTask
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		
+(format t "INIT DONE ~%")
+
+;; MENU
+(defvar nmbr nil)
+
+(defun menu()
+;;FIXME
+;  (execute '(navigationInst.tcb-init-navigation))
+;  (execute '(navigationInst.tcb-load-navigation-map "navigation-map"))
+;;FIXME
+;  (execute '(localizationModInst.tcb-load-localization-map "localization-map.yaml"))
+;  (execute '(localizationModInst.tcb-trigger-global-localization))
+;  (execute '(localizationModInst.tcb-set-robot-pose 0 0 0))
+(loop
+  (format t "MENU~%====~%~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 3 - Start Joystick Navigation ~%")
+  (format t " 4 - Stop Joystick Navigation ~%")
+  (format t " ---------------------------------------------------- ~%")
+  (format t " 5 - Approach location ~%")
+  (format t " ---------------------------------------------------- ~%")
+  ;(format t " 95 - Add new locations ~%")
+  (format t " 96 - Show locations ~%")
+  ;(format t " 97 - Save locations to file ~%")
+  ;(format t " 98 - Load locations from file ~%")
+  (format t "99 - quit menu ~%")
+  (format t " 0 - exit ~%")
+  (setf nmbr (parse-integer (read-line nil)))
+  (format t "your choice: ~d ~%" nmbr)
+  
+  (cond
+    ((equal nmbr 3)
+;      (execute '(navigationInst.tcb-joystick-navigation)))
+    ((equal nmbr 4)
+;      (execute '(navigationInst.tcb-stop-joystick-navigation)))
+    ((equal nmbr 5)
+     (format t "Enter location name: ~%")
+     (setf locations-var (string-upcase (read-line nil)))
+     (setf locations-var (intern locations-var))
+     (format t "your choice: ~a ~%" locations-var)
+       ;(execute '(cameraInst.activateCameraPush))
+       ;(execute '(laserfromrgbdInst.activateLaserGenaration))
+       ;(execute '(localizationModInst.tcb-activate-localization))
+       ;(execute `(navigationInst.tcb-approach-location ,locations-var))
+       ;(execute '(localizationModInst.tcb-deactivate-localization))
+       ;(execute '(laserfromrgbdInst.dectivateLaserGenaration))
+       ;(execute '(cameraInst.deactivateCamera)))
+    ;((equal nmbr 95)
+     ;(add-locations))
+    ((equal nmbr 96)
+     (show-locations))
+    ;((equal nmbr 97)
+    ; (save-positions-from-kb-to-file))
+    ;((equal nmbr 98)
+    ; (load-positions-from-file-to-kb))
+    ((equal nmbr 99)
+      (format t "type (menu) to come back to menu ~%")
+      (return))
+    ((equal nmbr 0)
+      (format t "bye bye ~%")
+      (quit))))))))
+
+;  (menu)
+		
+	
+}
