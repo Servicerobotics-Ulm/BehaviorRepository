@@ -1,0 +1,76 @@
+(tcl-kb-update 
+  :key '(is-a name)
+  :value `(
+            (is-a robot)
+            (name 1)
+            (last-reached-location 1)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name)
+  :value `(
+            (is-a robot)
+            (name 2)
+            (last-reached-location 2)
+            (velocity-travelling ((0 500)(-60 60)))
+            (velocity-path-navigation ((0 500)(-60 60)))
+            (velocity-following  ((0 1200)(-200 200)))
+            (current-room room-1)
+            (current-symbolic-position nil)
+            (goalid 0)
+            (default-nav-map "navigation-map")
+            (default-map "localization-map")))
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a room)
+            (name room-1)
+            (speech "room 1")
+            (size (20000 20000))
+            (offset (-10000 -10000))))
+
+;; from BehaviorRobotinoBoxTransportationTasks/model/kb.smartTcl
+;; Station types
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name mps)
+            (docking-type LASER-IR)
+           )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name MANUAL)
+            (docking-type LASER-IR)
+           )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name PASSIVE-RAMP-ULM)
+            (docking-type LASER-IR)
+           )
+)
+
+(tcl-kb-update 
+  :key '(is-a name) 
+  :value '(
+            (is-a station-type)
+            (name OPC-UA-STATION)
+            (docking-type LASER-IR)
+           )
+)

@@ -1,0 +1,100 @@
+;; TODO: change SmartCdlServer.smartTcl etc.
+;; from (tcl-kb-query :key '(is-a) :value '((is-a robot)))
+;; to (tcl-kb-query :key '(is-a name) :value `((is-a robot)(name ,id-robot)))
+;; OR use Master/Slave system (each slave has only one entry is-a robot)
+
+(defun show-locations ()
+  (let ((obj-list     (tcl-kb-query-all :key '(is-a) :value '((is-a location)))))
+    (dolist (obj obj-list)
+      (format t "~%--------------------------------~%")
+      (format t "L O C A T I O N ------------------~%")
+      (format t "name                       : ~s ~%" (get-value obj 'name))
+      (format t "  type                     : ~s ~%" (get-value obj 'type))
+      (format t "  approach-type            : ~s ~%" (get-value obj 'approach-type))
+      (format t "  approach-region-pose     : ~s ~%" (get-value obj 'approach-region-pose))
+      (format t "  approach-region-dist     : ~s ~%" (get-value obj 'approach-region-dist))
+      (format t "  approach-exact-pose      : ~s ~%" (get-value obj 'approach-exact-pose))
+      (format t "  approach-exact-dist      : ~s ~%" (get-value obj 'approach-exact-dist))
+      (format t "  approach-exact-safetycl  : ~s ~%" (get-value obj 'approach-exact-safetycl))
+      (format t "  orientation-region       : ~s ~%" (get-value obj 'orientation-region))
+      (format t "  orientation-exact        : ~s ~%" (get-value obj 'orientation-exact))
+      (format t "  orientation              : ~s ~%" (get-value obj 'orientation))
+      (format t "  station-distance         : ~s ~%" (get-value obj 'station-distance))
+      (format t "  belt-count               : ~s ~%" (get-value obj 'belt-count)))))
+
+  
+(defun show-robots ()
+  (let ((robot-list (tcl-kb-query-all :key '(is-a) :value '((is-a robot)))))
+    (dolist (robot robot-list)
+    (format t "~%--------------------------------~%")
+    (format t "R O B O T ------------------------~%")
+    (format t "  name                   : ~s ~%" (get-value robot 'name))
+    (format t "  velocity-travelling    : ~s ~%" (get-value robot 'velocity-travelling))
+    (format t "  current-room           : ~s ~%" (get-value robot 'current-room))
+    (format t "  curr-s-loc             : ~s ~%" (get-value robot 'current-symbolic-position)))))
+
+;; from BehaviorRobotinoBoxTransportationTasks.smartTcl
+
+(realize-tcb (driveToStation ?stationId)
+  (action (
+    (format t "driveToStation ~s ~%" '?stationId)
+    (let* ((station (tcl-kb-query :key '(is-a id) :value '( (is-a station) (id ?stationId))))
+           (goal (get-value station 'approach-location)))
+      (format t "goal name ~s ~%" goal)
+      (tcl-push-back-plan :plan `( (,(add-id-robot 'navigation.approachLocation) ,goal)))))))
+ 
+; beltId 1
+(realize-tcb (dockToMPSStation ?stationId ?beltId)
+  (action (
+    (format t "dockToMPSStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)
+    (tcl-push-back-plan :plan `( ( ,(add-id-robot 'MPS.tcb-mps-station-dock) ?stationId ?beltId) )))))
+ 
+(realize-tcb (undockFromMPSStation)
+  (action (
+    (format t "undockFromMPSStation~%")
+    (tcl-push-back-plan :plan `( ( ,(add-id-robot 'MPS.tcb-mps-station-undock-mps)) )))))
+
+(realize-tcb (unloadTo ?stationId)
+  (action (
+    (format t "unloadTo ~s~%" '?stationId)
+    (tcl-push-back-plan :plan `( ( ,(add-id-robot 'MPS.tcb-mps-station-unload) ?stationId) ))))
+)
+
+(realize-tcb (loadFrom ?stationId)
+  (action (
+    (format t "loadFrom ~s~%" '?stationId)
+    (tcl-push-back-plan :plan `( ( ,(add-id-robot 'MPS.tcb-mps-station-load) ?stationId) )))))
+
+(realize-tcb (deliverBoxToStation ?stationId ?beltId)
+  (action (
+    (format t "deliverBoxToStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)))
+  (plan (
+    (driveToStation ?stationId)
+    (dockToMPSStation ?stationId ?beltId)
+    (unloadTo ?stationId)
+    (undockFromMPSStation))))
+
+(realize-tcb (unloadBoxToStation ?stationId ?beltId)
+  (action (
+    (format t "unloadBoxToStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)))
+  (plan (
+    (dockToMPSStation ?stationId ?beltId)
+    (unloadTo ?stationId)
+    (undockFromMPSStation))))
+
+(realize-tcb (collectBoxFromStation ?stationId ?beltId)
+  (action (
+    (format t "collectBoxFromStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)))
+  (plan (
+    (driveToStation ?stationId)
+    (dockToMPSStation ?stationId ?beltId)
+    (loadFrom ?stationId)
+    (undockFromMPSStation))))
+
+(realize-tcb (loadBoxFromStation ?stationId ?beltId)
+  (action (
+    (format t "loadBoxFromStation: stationId, betlId ~s, ~s ~%" '?stationId '?beltId)))
+  (plan (
+    (dockToMPSStation ?stationId ?beltId)
+    (loadFrom ?stationId)
+    (undockFromMPSStation))))

@@ -1,0 +1,47 @@
+TaskRealizationModel BehaviorRobotinosStations {
+    AbstractCoordinationModuleInstance kbModInst coordModuleDef CommBasicObjects.KBModule
+    
+    AbstractCoordinationModuleInstance navigation_0 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_0 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_0 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_1 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_1 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_1 coordModuleDef CommNavigationObjects.MobileBaseModule
+    AbstractCoordinationModuleInstance MPS_1 coordModuleDef CommRobotinoObjects.MPSModule
+    AbstractCoordinationModuleInstance ir_1 coordModuleDef CommBasicObjects.IRGenerationModule
+
+    AbstractCoordinationModuleInstance navigation_2 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_2 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_2 coordModuleDef CommNavigationObjects.MobileBaseModule
+    AbstractCoordinationModuleInstance MPS_2 coordModuleDef CommRobotinoObjects.MPSModule
+    AbstractCoordinationModuleInstance ir_2 coordModuleDef CommBasicObjects.IRGenerationModule
+
+    AbstractCoordinationModuleInstance navigation_3 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_3 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_3 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_4 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_4 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_4 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_5 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_5 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_5 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_6 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_6 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_6 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_7 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_7 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_7 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_8 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_8 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_8 coordModuleDef CommNavigationObjects.MobileBaseModule
+
+    AbstractCoordinationModuleInstance navigation_9 coordModuleDef CommNavigationObjects.NavigationModule
+    AbstractCoordinationModuleInstance localizationModInst_9 coordModuleDef CommLocalizationObjects.LocalizationModule
+    AbstractCoordinationModuleInstance base_9 coordModuleDef CommNavigationObjects.MobileBaseModule
+}
